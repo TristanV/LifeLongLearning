@@ -19,6 +19,18 @@ def get_readme_content():
 def R(x, R0, k):
     return R0 * np.exp(k * x)
 
+def e(x,
+      a1=700, m1=800, sigma1=350,   # Paramètres du pic initial
+      a2=900, m2=2000, sigma2=500,  # Paramètres du creux central
+      L=9000, k=0.002, m3=9000      # Paramètres de la sigmoïde finale
+    ):
+    # x est le niveau réel d'apprentissage
+    # Ajustez les paramètres pour adapter la courbe à vos besoins
+    bump = a1 * np.exp(-((x - m1) ** 2) / (2 * sigma1 ** 2))
+    dip  = a2 * np.exp(-((x - m2) ** 2) / (2 * sigma2 ** 2))
+    sigmoid = L / (1 + np.exp(-k * (x - m3)))
+    return x + bump - dip + sigmoid
+
 def f(x, R0, k, f0, beta):
     return R(x, R0, k) - (R0 - f0) * x**(-beta)
 
@@ -68,8 +80,11 @@ with tabs[0]:
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
+    e_values = e(y)
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
+    ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='orange', linewidth=2)
+
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
     ax1.set_ylabel('Niveau d\'apprentissage auto-évalué')
@@ -121,6 +136,14 @@ with tabs[0]:
         st.latex(r'''
         f(x) = R(x) - (R_0 - f_0) \cdot x^{-\beta}
         ''')
+
+        st.markdown("**e(x) = auto-évaluation en fonction de la compétence réelle**")
+        st.latex(r'''
+        e(x) = x + a_1 \cdot \exp\left(-\frac{(x - m_1)^2}{2 \sigma_1^2}\right)
+                - a_2 \cdot \exp\left(-\frac{(x - m_2)^2}{2 \sigma_2^2}\right)
+                + \frac{L}{1 + \exp(-k(x - m_3))}
+        ''')
+        
         st.markdown("**g(y) = auto-évaluation en fonction de l'apprentissage**")
         st.latex(r'''
         g(y) = y + \alpha \cdot \sin(\omega \cdot y)
