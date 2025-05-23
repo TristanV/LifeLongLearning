@@ -159,7 +159,6 @@ with tabs[0]:
 
         st.markdown("**e(x) = auto-évaluation en fonction de la compétence réelle**")
         st.latex(r'''
-        st.latex(r'''
         e(x) = x + a_1 \exp\left(-\frac{(x - m_1)^2}{2 \sigma_1^2}\right)
                - a_2 \exp\left(-\frac{(x - m_2)^2}{2 \sigma_2^2}\right)
                + \left[ \frac{L}{1 + e^{-k(x - m_3)}} - L \right]
