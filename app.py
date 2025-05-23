@@ -46,39 +46,41 @@ with tabs[0]:
     # Sidebar for parameters
     st.sidebar.header("Paramètres")
 
+
+    with st.sidebar.expander("Courbe d'auto-évaluation", expanded=True):
+
+        a1 = st.sidebar.slider("a1 (amplitude du pic initial)", 0, 2000, 700)
+        m1 = st.sidebar.slider("m1 (centre du pic initial)", 0, 5000, 800)
+        sigma1 = st.sidebar.slider("sigma1 (largeur du pic initial)", 1, 2000, 350)
+        
+        a2 = st.sidebar.slider("a2 (amplitude du creux)", 0, 2000, 900)
+        m2 = st.sidebar.slider("m2 (centre du creux)", 0, 5000, 2000)
+        sigma2 = st.sidebar.slider("sigma2 (largeur du creux)", 1, 2000, 500)
+        
+        L = st.sidebar.slider("L (amplitude de la sigmoïde finale)", 0, 5000, 800)
+        k = st.sidebar.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
+        m3 = st.sidebar.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
+    
     # Section "Niveau de référence"
-    st.sidebar.subheader("Niveau de référence")
-    R0 = st.sidebar.slider("R0 (Niveau de référence initial)", 100, 2000, 1000)
-    k = st.sidebar.slider("k (Taux de croissance exponentielle)", 0.01, 0.1, 0.05)
+    with st.sidebar.expander("Niveau de référence", expanded=True):
+        R0 = st.sidebar.slider("R0 (Niveau de référence initial)", 100, 2000, 1000)
+        k = st.sidebar.slider("k (Taux de croissance exponentielle)", 0.01, 0.1, 0.05)
 
     # Section "Courbe d'apprentissage"
-    st.sidebar.subheader("Courbe d'apprentissage")
-    f0 = st.sidebar.slider("f0 (Niveau initial de compétence)", 10, 500, 100)
-    beta = st.sidebar.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.5)
+    with st.sidebar.expander("Courbe d'apprentissage", expanded=True):
+        f0 = st.sidebar.slider("f0 (Niveau initial de compétence)", 10, 500, 100)
+        beta = st.sidebar.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.5)
 
     # Section "Courbe d'auto-évaluation"
-    st.sidebar.subheader("Courbe d'auto-évaluation oscillante")
-    alpha = st.sidebar.slider("alpha (Facteur de proportionnalité)", 0.1, 2.0, 1.0)
-    omega = st.sidebar.slider("omega (Fréquence des oscillations)", 0.1, 5.0, 1.0)
+    with st.sidebar.expander("Courbe d'auto-évaluation oscillante", expanded=True):
+        alpha = st.sidebar.slider("alpha (Facteur de proportionnalité)", 0.1, 2.0, 1.0)
+        omega = st.sidebar.slider("omega (Fréquence des oscillations)", 0.1, 5.0, 1.0)
 
-    st.sidebar.subheader("Courbe d'auto-évaluation")
-
-    a1 = st.sidebar.slider("a1 (amplitude du pic initial)", 0, 2000, 700)
-    m1 = st.sidebar.slider("m1 (centre du pic initial)", 0, 5000, 800)
-    sigma1 = st.sidebar.slider("sigma1 (largeur du pic initial)", 1, 2000, 350)
-    
-    a2 = st.sidebar.slider("a2 (amplitude du creux)", 0, 2000, 900)
-    m2 = st.sidebar.slider("m2 (centre du creux)", 0, 5000, 2000)
-    sigma2 = st.sidebar.slider("sigma2 (largeur du creux)", 1, 2000, 500)
-    
-    L = st.sidebar.slider("L (amplitude de la sigmoïde finale)", 0, 5000, 800)
-    k = st.sidebar.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
-    m3 = st.sidebar.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
 
     # Section "Représentation"
-    st.sidebar.subheader("Représentation")
-    x_range = st.sidebar.slider("Intervalle de temps (x)", 1, 100, (1, 100))
-    y_range = st.sidebar.slider("Intervalle de niveau d'apprentissage (y)", 0, 10000, (0, 10000))
+    with st.sidebar.expander("Représentation", expanded=True):
+        x_range = st.sidebar.slider("Intervalle de temps (x)", 1, 100, (1, 100))
+        y_range = st.sidebar.slider("Intervalle de niveau d'apprentissage (y)", 0, 10000, (0, 10000))
 
     # Générer les valeurs x et y
     x = np.linspace(x_range[0], x_range[1], 500)
