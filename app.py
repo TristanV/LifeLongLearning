@@ -19,23 +19,11 @@ def get_readme_content():
 def R(x, R0, k):
     return R0 * np.exp(k * x)
 
-def e(x,
-      a1=700, m1=800, sigma1=350,   # Paramètres du pic initial
-      a2=900, m2=2000, sigma2=500,  # Paramètres du creux central
-      L=9000, k=0.002, m3=9000      # Paramètres de la sigmoïde finale
-    ):
-    # x est le niveau réel d'apprentissage
-    # Ajustez les paramètres pour adapter la courbe à vos besoins
-    bump = a1 * np.exp(-((x - m1) ** 2) / (2 * sigma1 ** 2))
-    dip  = a2 * np.exp(-((x - m2) ** 2) / (2 * sigma2 ** 2))
-    sigmoid = L / (1 + np.exp(-k * (x - m3)))
-    return x + bump - dip + sigmoid
-
 def e(x, a1, m1, sigma1, a2, m2, sigma2, L, k, m3):
     bump = a1 * np.exp(-((x - m1) ** 2) / (2 * sigma1 ** 2))
     dip  = a2 * np.exp(-((x - m2) ** 2) / (2 * sigma2 ** 2))
     sigmoid = L / (1 + np.exp(-k * (x - m3))) - L
-    return x + bump - dip + sigmoid
+    return x + bump - dip + sigmoid 
 
 def f(x, R0, k, f0, beta):
     return R(x, R0, k) - (R0 - f0) * x**(-beta)
