@@ -31,6 +31,12 @@ def e(x,
     sigmoid = L / (1 + np.exp(-k * (x - m3)))
     return x + bump - dip + sigmoid
 
+def e(x, a1, m1, sigma1, a2, m2, sigma2, L, k, m3):
+    bump = a1 * np.exp(-((x - m1) ** 2) / (2 * sigma1 ** 2))
+    dip  = a2 * np.exp(-((x - m2) ** 2) / (2 * sigma2 ** 2))
+    sigmoid = L / (1 + np.exp(-k * (x - m3))) - L
+    return x + bump - dip + sigmoid
+
 def f(x, R0, k, f0, beta):
     return R(x, R0, k) - (R0 - f0) * x**(-beta)
 
@@ -63,9 +69,23 @@ with tabs[0]:
     beta = st.sidebar.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.5)
 
     # Section "Courbe d'auto-évaluation"
-    st.sidebar.subheader("Courbe d'auto-évaluation")
+    st.sidebar.subheader("Courbe d'auto-évaluation oscillante")
     alpha = st.sidebar.slider("alpha (Facteur de proportionnalité)", 0.1, 2.0, 1.0)
     omega = st.sidebar.slider("omega (Fréquence des oscillations)", 0.1, 5.0, 1.0)
+
+    st.sidebar.subheader("Courbe d'auto-évaluation")
+
+    a1 = st.sidebar.slider("a1 (amplitude du pic initial)", 0, 2000, 700)
+    m1 = st.sidebar.slider("m1 (centre du pic initial)", 0, 5000, 800)
+    sigma1 = st.sidebar.slider("sigma1 (largeur du pic initial)", 1, 2000, 350)
+    
+    a2 = st.sidebar.slider("a2 (amplitude du creux)", 0, 2000, 900)
+    m2 = st.sidebar.slider("m2 (centre du creux)", 0, 5000, 2000)
+    sigma2 = st.sidebar.slider("sigma2 (largeur du creux)", 1, 2000, 500)
+    
+    L = st.sidebar.slider("L (amplitude de la sigmoïde finale)", 0, 5000, 800)
+    k = st.sidebar.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
+    m3 = st.sidebar.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
 
     # Section "Représentation"
     st.sidebar.subheader("Représentation")
@@ -80,7 +100,7 @@ with tabs[0]:
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
-    e_values = e(y)
+    e_values = e(y, a1, m1, sigma1, a2, m2, sigma2, L, k, m3)
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
     ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='orange', linewidth=2)
@@ -139,9 +159,10 @@ with tabs[0]:
 
         st.markdown("**e(x) = auto-évaluation en fonction de la compétence réelle**")
         st.latex(r'''
-        e(x) = x + a_1 \cdot \exp\left(-\frac{(x - m_1)^2}{2 \sigma_1^2}\right)
-                - a_2 \cdot \exp\left(-\frac{(x - m_2)^2}{2 \sigma_2^2}\right)
-                + \frac{L}{1 + \exp(-k(x - m_3))}
+        st.latex(r'''
+        e(x) = x + a_1 \exp\left(-\frac{(x - m_1)^2}{2 \sigma_1^2}\right)
+               - a_2 \exp\left(-\frac{(x - m_2)^2}{2 \sigma_2^2}\right)
+               + \left[ \frac{L}{1 + e^{-k(x - m_3)}} - L \right]
         ''')
         
         st.markdown("**g(y) = auto-évaluation en fonction de l'apprentissage**")
