@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="LifeLongLearning",
     page_icon=":superhero:",
     layout="wide",
-    initial_sidebar_state="collapsed" # collapsed | expanded
+    initial_sidebar_state="expanded" # collapsed | expanded
 )
  
 # Lire le contenu du README.md
@@ -52,7 +52,7 @@ with tabs[0]:
     st.sidebar.header("Paramètres")
 
 
-    with st.sidebar.expander("Courbe d'auto-évaluation", expanded=True):
+    with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
 
         a1 = st.slider("a1 (amplitude du pic initial)", 0, 2000, 700)
         m1 = st.slider("m1 (centre du pic initial)", 0, 5000, 800)
@@ -67,23 +67,23 @@ with tabs[0]:
         m3 = st.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
     
     # Section "Niveau de référence"
-    with st.sidebar.expander("Niveau de référence", expanded=True):
+    with st.sidebar.expander("Niveau de référence", expanded=False):
         R0 = st.slider("R0 (Niveau de référence initial)", 100, 2000, 1000)
         k = st.slider("k (Taux de croissance exponentielle)", 0.01, 0.1, 0.05)
 
     # Section "Courbe d'apprentissage"
-    with st.sidebar.expander("Courbe d'apprentissage", expanded=True):
+    with st.sidebar.expander("Courbe d'apprentissage", expanded=False):
         f0 = st.slider("f0 (Niveau initial de compétence)", 10, 500, 100)
         beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.5)
 
     # Section "Courbe d'auto-évaluation"
-    with st.sidebar.expander("Courbe d'auto-évaluation oscillante", expanded=True):
+    with st.sidebar.expander("Courbe d'auto-évaluation oscillante", expanded=False):
         alpha = st.slider("alpha (Facteur de proportionnalité)", 0.1, 2.0, 1.0)
         omega = st.slider("omega (Fréquence des oscillations)", 0.1, 5.0, 1.0)
 
 
     # Section "Représentation"
-    with st.sidebar.expander("Représentation", expanded=True):
+    with st.sidebar.expander("Axes", expanded=False):
         x_range = st.slider("Intervalle de temps (x)", 1, 100, (1, 100))
         y_range = st.slider("Intervalle de niveau d'apprentissage (y)", 0, 10000, (0, 10000))
 
