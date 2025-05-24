@@ -50,7 +50,7 @@ with tabs[0]:
 
     # Sidebar for parameters
 
-    st.sidebar.image("static/images/lifelonglearning_logo.png", use_column_width=True)
+    st.sidebar.image("static/images/logo_lifelonglearning_v1.png", use_container_width =True)
     
     st.sidebar.header("Paramètres")
 
