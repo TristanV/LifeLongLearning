@@ -38,30 +38,37 @@ def bezier_cubic(t, P0, P1, P2, P3):
         t**3 * P3
     )
 
-def e_bezier_asympt(x, x_max, y_c1, y_c2, lambda_=0.005):
-    # x: array
+def e_composite(x, x_creux, y_c1, y_c2, slope=0.01):
+    """
+    x: array of real skill values
+    x_creux: abscisse du point de confiance minimale (creux)
+    y_c1, y_c2: contrôlent la forme de la Bézier jusqu'au creux
+    slope: raideur de la transition sigmoïde
+    """
     x = np.array(x)
-    t = np.clip(x / x_max, 0, 1)
-    B = x_max * bezier_cubic(
+    e_vals = np.zeros_like(x)
+    # Phase 1: Bézier sur [0, x_creux]
+    t = np.clip(x / x_creux, 0, 1)
+    B = x_creux * bezier_cubic(
         t,
         0,
-        y_c1,
-        y_c2,
-        1
+        y_c1,  # Surévaluation initiale (en proportion de x_creux)
+        y_c2,  # Profondeur du creux (en proportion de x_creux)
+        1      # Retour à la diagonale au point d'inflexion (x_creux, x_creux)
     )
-    # Pour x <= x_max : B(x)
-    # Pour x > x_max : transition asymptotique vers y=x
-    e_vals = np.copy(B)
-    mask = x > x_max
+    # Valeur au creux pour raccord
+    e_creux = B[-1] if isinstance(B, np.ndarray) else B
+    # Phase 2: Sigmoïde vers y=x pour x > x_creux
+    mask = x > x_creux
     if np.any(mask):
-        x2 = x[mask]
-        # Valeur de B en x_max (on reste constant pour la partie Bézier)
-        B_max = x_max * bezier_cubic(1, 0, y_c1, y_c2, 1)
-        # Interpolation asymptotique
-        w = 1 - np.exp(-lambda_ * (x2 - x_max))
-        e_vals[mask] = (1-w) * B_max + w * x2
+        x_sig = x[mask]
+        # Sigmoïde croissante de 0 (au creux) à 1 (pour x>>x_creux)
+        s = 1 / (1 + np.exp(-slope * (x_sig - x_creux)))
+        # La sigmoïde relie e_creux à x
+        e_vals[mask] = (1-s) * e_creux + s * x_sig
+    # Phase 1: Bézier
+    e_vals[~mask] = B[~mask]
     return e_vals
-
 
 def f(x, R0, k, f0, beta):
     return R(x, R0, k) - (R0 - f0) * x**(-beta)
@@ -102,11 +109,11 @@ with tabs[0]:
         k = st.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
         m3 = st.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
                              
-        st.markdown("Réglez la forme de la courbe de Bézier pour e(x) :")
-        x_max = st.sidebar.slider("x_max (niveau réel max)", 100, 10000, 5000)
-        y_c1 = st.sidebar.slider("y_c1 (contrôle sur-début)", -1.0, 2.0, 1.2, step=0.01)
-        y_c2 = st.sidebar.slider("y_c2 (contrôle sous-fin)", -1.0, 2.0, 0.2, step=0.01)
-        lambda_ = st.sidebar.slider("lambda (asymptote vers y=x)", 0.0001, 0.05, 0.005, step=0.0001, format="%.4f")
+    with st.sidebar.expander("Auto-évaluation réaliste (Dunning-Kruger + expertise)", expanded=True):
+        x_creux = st.slider("x_creux (niveau réel au creux)", 100, 9000, 2000)
+        y_c1 = st.slider("y_c1 (contrôle sur-début, >1 pour surévaluation)", 0.5, 2.0, 1.2, step=0.01)
+        y_c2 = st.slider("y_c2 (profondeur creux, <1 pour sous-évaluation)", -1.0, 1.0, 0.2, step=0.01)
+        slope = st.slider("slope (raideur de la remontée finale)", 0.001, 0.05, 0.01, step=0.001)
     
     # Section "Niveau de référence"
     with st.sidebar.expander("Niveau de référence", expanded=False):
@@ -138,11 +145,11 @@ with tabs[0]:
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
     e_values = e(y, a1, m1, sigma1, a2, m2, sigma2, L, k, m3)
-    e_bezier_values = e_bezier_asympt(y, x_max, y_c1, y_c2)
+    e_vals = e_composite(y, x_creux, y_c1, y_c2, slope)
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
     ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='pink', linewidth=2)
-    ax1.plot(y, e_bezier_values, label=r'$e_{Bézier,\,asympt}(x)$', color='orange', linewidth=2)
+    ax1.plot(y, e_vals, label=r'$e_{\text{réaliste}}(x)$', color='orange', linewidth=2)
 
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
@@ -203,14 +210,13 @@ with tabs[0]:
                + \left[ \frac{L}{1 + e^{-k(x - m_3)}} - L \right]
         ''')
 
-        st.markdown("**e(x) = courbe de Bézier cubique asymptotique**")
         st.latex(r'''
         e(x) = 
         \begin{cases}
-        x_{\text{max}} \cdot \left[(1-t)^3 \cdot 0 + 3(1-t)^2 t \cdot y_{c1} + 3(1-t) t^2 \cdot y_{c2} + t^3 \cdot 1\right], & \text{si } x \leq x_{\text{max}} \\
-        (1-w) \cdot B_{\text{max}} + w \cdot x, \quad w = 1 - e^{-\lambda(x-x_{\text{max}})}, & \text{si } x > x_{\text{max}}
+        x_{\text{creux}} \cdot \mathrm{Bézier}_3(t), & x \leq x_{\text{creux}} \\
+        (1-s)\,e_{\text{creux}} + s\,x, & x > x_{\text{creux}},\quad s = \frac{1}{1 + e^{-\alpha(x - x_{\text{creux}})}}
         \end{cases}
-        \qquad t = \frac{x}{x_{\text{max}}}
+        \qquad t = \frac{x}{x_{\text{creux}}}
         ''')
         
         st.markdown("**g(y) = auto-évaluation en fonction de l'apprentissage**")
