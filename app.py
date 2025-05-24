@@ -49,6 +49,9 @@ with tabs[0]:
     st.title("LifeLongLearning")
 
     # Sidebar for parameters
+
+    st.sidebar.image("static/images/lifelonglearning_logo.png", use_column_width=True)
+    
     st.sidebar.header("Paramètres")
 
 
