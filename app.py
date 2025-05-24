@@ -30,6 +30,24 @@ def e(x, a1, m1, sigma1, a2, m2, sigma2, L, k, m3):
     sigmoid = L / (1 + np.exp(-k * (x - m3))) - L
     return x + bump - dip + sigmoid 
 
+def bezier_cubic(t, P0, P1, P2, P3):
+    return (
+        (1-t)**3 * P0 +
+        3*(1-t)**2 * t * P1 +
+        3*(1-t) * t**2 * P2 +
+        t**3 * P3
+    )
+
+def e_bezier(x, x_max, y_c1, y_c2):
+    t = x / x_max
+    return x_max * bezier_cubic(
+        t,
+        0,      # P0.y
+        y_c1,   # P1.y (pour t=1/3)
+        y_c2,   # P2.y (pour t=2/3)
+        1       # P3.y
+    )
+
 def f(x, R0, k, f0, beta):
     return R(x, R0, k) - (R0 - f0) * x**(-beta)
 
@@ -68,6 +86,11 @@ with tabs[0]:
         L = st.slider("L (amplitude de la sigmoïde finale)", 0, 5000, 800)
         k = st.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
         m3 = st.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
+                             
+        st.markdown("Réglez la forme de la courbe de Bézier pour e(x) :")
+        x_max = st.sidebar.slider("x_max (niveau réel max)", 100, 10000, 5000)
+        y_c1 = st.sidebar.slider("y_c1 (contrôle sur-début)", -1.0, 2.0, 1.2, step=0.01)
+        y_c2 = st.sidebar.slider("y_c2 (contrôle sous-fin)", -1.0, 2.0, 0.2, step=0.01)
     
     # Section "Niveau de référence"
     with st.sidebar.expander("Niveau de référence", expanded=False):
@@ -99,9 +122,11 @@ with tabs[0]:
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
     e_values = e(y, a1, m1, sigma1, a2, m2, sigma2, L, k, m3)
+    e_bezier_values = e_bezier(y, x_max, y_c1, y_c2)
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
-    ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='orange', linewidth=2)
+    ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='pink', linewidth=2)
+    ax1.plot(y, e_bezier_values, label=r'$e_{Bézier}(x)$', color='orange', linewidth=2)
 
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
@@ -161,11 +186,17 @@ with tabs[0]:
                - a_2 \exp\left(-\frac{(x - m_2)^2}{2 \sigma_2^2}\right)
                + \left[ \frac{L}{1 + e^{-k(x - m_3)}} - L \right]
         ''')
+
+        st.markdown("**e(x) = courbe de Bézier cubique**")
+        st.latex(r'''
+        e(x) = x_{\text{max}} \cdot \big[(1-t)^3 \cdot 0 + 3(1-t)^2 t \cdot y_{c1} + 3(1-t) t^2 \cdot y_{c2} + t^3 \cdot 1\big], \quad t = \frac{x}{x_{\text{max}}}
+        ''')
         
         st.markdown("**g(y) = auto-évaluation en fonction de l'apprentissage**")
         st.latex(r'''
         g(y) = y + \alpha \cdot \sin(\omega \cdot y)
         ''')
+        
     with col2:
         st.markdown("**A(x) = amplitude des oscillations**")
         st.latex(r'''
