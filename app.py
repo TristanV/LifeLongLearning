@@ -166,6 +166,12 @@ with tabs[0]:
         y_c1 = st.slider("y_c1 (contrôle sur-début, >1 pour surévaluation)", 0.5, 2.0, 1.2, step=0.01)
         y_c2 = st.slider("y_c2 (profondeur creux, <1 pour sous-évaluation)", -1.0, 1.0, 0.2, step=0.01)
         slope = st.slider("slope (raideur de la remontée finale)", 0.001, 0.05, 0.01, step=0.001)
+
+    with st.sidebar.expander("Courbe d'auto-évaluation (modèle evalearn)", expanded=False):
+        maximum_local = st.slider("maximum_local (valeur max local en x=R/4)", 0, 10000, 3000)
+        minimum_local = st.slider("minimum_local (valeur min local en x=R/2)", 0, 10000, 1000)
+        pente_sigmoide = st.slider("pente_sigmoide (raideur sigmoïde)", 0.01, 5.0, 1.0, step=0.01)
+
     
     # Section "Niveau de référence"
     with st.sidebar.expander("Niveau de référence", expanded=False):
@@ -198,10 +204,12 @@ with tabs[0]:
     g_values = g(y, alpha, omega)
     e_values = e(y, a1, m1, sigma1, a2, m2, sigma2, L, k, m3)
     e_vals = e_composite(y, x_creux, y_c1, y_c2, slope)
+    evalearn_values = evalearn(y, R0, maximum_local, minimum_local, pente_sigmoide)
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
     ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='pink', linewidth=2)
     ax1.plot(y, e_vals, label=r'$e_{\text{réaliste}}(x)$', color='orange', linewidth=2)
+    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue', linewidth=2)
 
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
@@ -274,6 +282,24 @@ with tabs[0]:
         st.markdown("**g(y) = auto-évaluation en fonction de l'apprentissage**")
         st.latex(r'''
         g(y) = y + \alpha \cdot \sin(\omega \cdot y)
+        ''')
+
+        st.markdown("**evalearn(x) = auto-évaluation (par parties)**")
+        st.latex(r'''
+        \mathrm{evalearn}(x) =
+        \begin{cases}
+        a\, \sin\left(2\pi \frac{x}{R}\right) + b\, x, & 0 \leq x \leq \frac{R}{2} \\
+        \text{sigmoïde croissante}, & \frac{R}{2} < x \leq R \\
+        x, & x > R
+        \end{cases}
+        ''')
+        st.markdown(r'''
+        où :
+        - $a = \mathrm{maximum\_local} - \frac{R}{4} \cdot b$, $b = \frac{2\,\mathrm{minimum\_local}}{R}$
+        - sigmoïde centrée sur $x_c = \frac{3R}{4}$ et raideur contrôlée par ``pente_sigmoide`` :
+        ''')
+        st.latex(r'''
+        \mathrm{sigmoide}(x) = \mathrm{minimum\_local} + (R - \mathrm{minimum\_local}) \cdot \left[ \frac{1}{1 + e^{-\mathrm{pente\_sigmoide} \cdot \frac{x-x_c}{R/2}}} \right]
         ''')
         
     with col2:
