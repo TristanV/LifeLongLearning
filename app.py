@@ -70,6 +70,58 @@ def e_composite(x, x_creux, y_c1, y_c2, slope=0.01):
     e_vals[~mask] = B[~mask]
     return e_vals
 
+def evalearn(x, R, maximum_local, minimum_local, pente_sigmoide):
+    """
+    Modélise la courbe d'auto-évaluation avec trois zones distinctes.
+    
+    Paramètres :
+        x (float ou np.ndarray) : Valeur(s) de compétence réelle
+        R (float) : Niveau de référence à atteindre
+        maximum_local (float) : Valeur du maximum local en x=R/4
+        minimum_local (float) : Valeur du minimum local en x=R/2
+        pente_sigmoide (float) : Contrôle la raideur de la transition sigmoïde
+    
+    Retourne :
+        float ou np.ndarray : Valeur(s) de l'auto-évaluation e(x)
+    """
+    
+    x = np.array(x, dtype=float)
+    y = np.zeros_like(x)
+    
+    # Zone 1 : Comportement sinusoïdal-linéaire [0, R/2]
+    mask1 = (x >= 0) & (x <= R/2)
+    if np.any(mask1):
+        # Résolution du système pour a et b :
+        # e(R/4) = a*1 + b*(R/4) = maximum_local
+        # e(R/2) = a*0 + b*(R/2) = minimum_local
+        b = (2 * minimum_local) / R
+        a = maximum_local - b * R/4
+        
+        # Application de la formule composite
+        y[mask1] = a * np.sin(2 * np.pi * x[mask1]/R) + b * x[mask1]
+    
+    # Zone 2 : Demi-sigmoïde ajustée (R/2, R]
+    mask2 = (x > R/2) & (x <= R)
+    if np.any(mask2):
+        # Centrage de la sigmoïde sur 3R/4
+        x_centre = 0.75 * R
+        
+        # Fonction sigmoïde standard
+        sigmoid = lambda z: 1 / (1 + np.exp(-z))
+        
+        # Ajustement de l'échelle et du décalage
+        y[mask2] = minimum_local + (R - minimum_local) * sigmoid(
+            pente_sigmoide * (x[mask2] - x_centre)/(R/2)
+        )
+    
+    # Zone 3 : Alignement parfait (x > R)
+    mask3 = (x > R)
+    if np.any(mask3):
+        y[mask3] = x[mask3]
+    
+    return y
+
+
 def f(x, R0, k, f0, beta):
     return R(x, R0, k) - (R0 - f0) * x**(-beta)
 
