@@ -24,100 +24,45 @@ def get_readme_content():
 def R(x, R0, k):
     return R0 * np.exp(k * x)
 
-def e(x, a1, m1, sigma1, a2, m2, sigma2, L, k, m3):
-    bump = a1 * np.exp(-((x - m1) ** 2) / (2 * sigma1 ** 2))
-    dip  = a2 * np.exp(-((x - m2) ** 2) / (2 * sigma2 ** 2))
-    sigmoid = L / (1 + np.exp(-k * (x - m3))) - L
-    return x + bump - dip + sigmoid 
-
-def bezier_cubic(t, P0, P1, P2, P3):
-    return (
-        (1-t)**3 * P0 +
-        3*(1-t)**2 * t * P1 +
-        3*(1-t) * t**2 * P2 +
-        t**3 * P3
-    )
-
-def e_composite(x, x_creux, y_c1, y_c2, slope=0.01):
+def evalearn(x, R, pente_sigmoide):
     """
-    x: array of real skill values
-    x_creux: abscisse du point de confiance minimale (creux)
-    y_c1, y_c2: contrôlent la forme de la Bézier jusqu'au creux
-    slope: raideur de la transition sigmoïde
-    """
-    x = np.array(x)
-    e_vals = np.zeros_like(x)
-    # Phase 1: Bézier sur [0, x_creux]
-    t = np.clip(x / x_creux, 0, 1)
-    B = x_creux * bezier_cubic(
-        t,
-        0,
-        y_c1,  # Surévaluation initiale (en proportion de x_creux)
-        y_c2,  # Profondeur du creux (en proportion de x_creux)
-        1      # Retour à la diagonale au point d'inflexion (x_creux, x_creux)
-    )
-    # Valeur au creux pour raccord
-    e_creux = B[-1] if isinstance(B, np.ndarray) else B
-    # Phase 2: Sigmoïde vers y=x pour x > x_creux
-    mask = x > x_creux
-    if np.any(mask):
-        x_sig = x[mask]
-        # Sigmoïde croissante de 0 (au creux) à 1 (pour x>>x_creux)
-        s = 1 / (1 + np.exp(-slope * (x_sig - x_creux)))
-        # La sigmoïde relie e_creux à x
-        e_vals[mask] = (1-s) * e_creux + s * x_sig
-    # Phase 1: Bézier
-    e_vals[~mask] = B[~mask]
-    return e_vals
-
-def evalearn(x, R, maximum_local, minimum_local, pente_sigmoide):
-    """
-    Modélise la courbe d'auto-évaluation avec trois zones distinctes.
+    Modélisation précise de la courbe d'auto-évaluation avec contraintes strictes.
     
     Paramètres :
-        x (float ou np.ndarray) : Valeur(s) de compétence réelle
-        R (float) : Niveau de référence à atteindre
-        maximum_local (float) : Valeur du maximum local en x=R/4
-        minimum_local (float) : Valeur du minimum local en x=R/2
-        pente_sigmoide (float) : Contrôle la raideur de la transition sigmoïde
+        x (float/array) : Compétence réelle
+        R (float) : Niveau de référence
+        pente_sigmoide (float) : Contrôle la raideur de la transition
     
     Retourne :
-        float ou np.ndarray : Valeur(s) de l'auto-évaluation e(x)
+        float/array : Valeur(s) de l'auto-évaluation
     """
-    
-    x = np.array(x, dtype=float)
+    x = np.asarray(x, dtype=float)
     y = np.zeros_like(x)
     
-    # Zone 1 : Comportement sinusoïdal-linéaire [0, R/2]
-    mask1 = (x >= 0) & (x <= R/2)
-    if np.any(mask1):
-        # Résolution du système pour a et b :
-        # e(R/4) = a*1 + b*(R/4) = maximum_local
-        # e(R/2) = a*0 + b*(R/2) = minimum_local
-        b = (2 * minimum_local) / R
-        a = maximum_local - b * R/4
-        
-        # Application de la formule composite
-        y[mask1] = a * np.sin(2 * np.pi * x[mask1]/R) + b * x[mask1]
+    # Masques pour les zones
+    mask_sin = (x >= 0) & (x <= R/2)
+    mask_sig = (x > R/2) & (x <= R)
+    mask_lin = (x > R)
     
-    # Zone 2 : Demi-sigmoïde ajustée (R/2, R]
-    mask2 = (x > R/2) & (x <= R)
-    if np.any(mask2):
-        # Centrage de la sigmoïde sur 3R/4
-        x_centre = 0.75 * R
-        
-        # Fonction sigmoïde standard
-        sigmoid = lambda z: 1 / (1 + np.exp(-z))
-        
-        # Ajustement de l'échelle et du décalage
-        y[mask2] = minimum_local + (R - minimum_local) * sigmoid(
-            pente_sigmoide * (x[mask2] - x_centre)/(R/2)
-        )
+    # 1. Segment sinusoïdal (0 ≤ x ≤ R/2)
+    if np.any(mask_sin):
+        k = 4 * np.pi / R
+        y[mask_sin] = (R/4) * (1 - np.cos(k * x[mask_sin]))
     
-    # Zone 3 : Alignement parfait (x > R)
-    mask3 = (x > R)
-    if np.any(mask3):
-        y[mask3] = x[mask3]
+    # 2. Demi-sigmoïde ajustée (R/2 < x ≤ R)
+    if np.any(mask_sig):
+        # Facteur de correction pour le point d'inflexion
+        phi = (1 + np.sqrt(5))/2  # Nombre d'or
+        k = pente_sigmoide * phi
+        
+        # Calcul de la sigmoïde normalisée
+        z = (x[mask_sig] - R/2)/(R/2)
+        sigmoid = 1 / (1 + np.exp(-k*(z - 0.5)))
+        
+        y[mask_sig] = R/4 + (3*R/4)*sigmoid
+    
+    # 3. Alignement linéaire (x > R)
+    y[mask_lin] = x[mask_lin]
     
     return y
 
@@ -149,34 +94,14 @@ with tabs[0]:
 
     with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
 
-        a1 = st.slider("a1 (amplitude du pic initial)", 0, 2000, 700)
-        m1 = st.slider("m1 (centre du pic initial)", 0, 5000, 800)
-        sigma1 = st.slider("sigma1 (largeur du pic initial)", 1, 2000, 350)
-        
-        a2 = st.slider("a2 (amplitude du creux)", 0, 2000, 900)
-        m2 = st.slider("m2 (centre du creux)", 0, 5000, 2000)
-        sigma2 = st.slider("sigma2 (largeur du creux)", 1, 2000, 500)
-        
-        L = st.slider("L (amplitude de la sigmoïde finale)", 0, 5000, 800)
         k = st.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
-        m3 = st.slider("m3 (centre de la sigmoïde)", 0, 15000, 9000)
-                             
-    with st.sidebar.expander("Auto-évaluation réaliste (Dunning-Kruger + expertise)", expanded=True):
-        x_creux = st.slider("x_creux (niveau réel au creux)", 100, 9000, 2000)
-        y_c1 = st.slider("y_c1 (contrôle sur-début, >1 pour surévaluation)", 0.5, 2.0, 1.2, step=0.01)
-        y_c2 = st.slider("y_c2 (profondeur creux, <1 pour sous-évaluation)", -1.0, 1.0, 0.2, step=0.01)
-        slope = st.slider("slope (raideur de la remontée finale)", 0.001, 0.05, 0.01, step=0.001)
-
-    with st.sidebar.expander("Courbe d'auto-évaluation (modèle evalearn)", expanded=False):
-        maximum_local = st.slider("maximum_local (valeur max local en x=R/4)", 0, 10000, 3000)
-        minimum_local = st.slider("minimum_local (valeur min local en x=R/2)", 0, 10000, 1000)
         pente_sigmoide = st.slider("pente_sigmoide (raideur sigmoïde)", 0.01, 5.0, 1.0, step=0.01)
 
     
     # Section "Niveau de référence"
     with st.sidebar.expander("Niveau de référence", expanded=False):
         R0 = st.slider("R0 (Niveau de référence initial)", 100, 2000, 1000)
-        k = st.slider("k (Taux de croissance exponentielle)", 0.01, 0.1, 0.05)
+        k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.01, 0.1, 0.05)
 
     # Section "Courbe d'apprentissage"
     with st.sidebar.expander("Courbe d'apprentissage", expanded=False):
@@ -202,15 +127,10 @@ with tabs[0]:
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
-    e_values = e(y, a1, m1, sigma1, a2, m2, sigma2, L, k, m3)
-    e_vals = e_composite(y, x_creux, y_c1, y_c2, slope)
-    evalearn_values = evalearn(y, R0, maximum_local, minimum_local, pente_sigmoide)
+    evalearn_values = evalearn(y, R0, pente_sigmoide)
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
-    ax1.plot(y, e_values, label=r'$e(x) = \text{auto-évaluation en fonction de la compétence réelle}$', color='pink', linewidth=2)
-    ax1.plot(y, e_vals, label=r'$e_{\text{réaliste}}(x)$', color='orange', linewidth=2)
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue', linewidth=2)
-
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
     ax1.set_ylabel('Niveau d\'apprentissage auto-évalué')
@@ -265,42 +185,11 @@ with tabs[0]:
 
         st.markdown("**e(x) = auto-évaluation en fonction de la compétence réelle**")
         st.latex(r'''
-        e(x) = x + a_1 \exp\left(-\frac{(x - m_1)^2}{2 \sigma_1^2}\right)
-               - a_2 \exp\left(-\frac{(x - m_2)^2}{2 \sigma_2^2}\right)
-               + \left[ \frac{L}{1 + e^{-k(x - m_3)}} - L \right]
-        ''')
-
-        st.latex(r'''
-        e(x) = 
-        \begin{cases}
-        x_{\text{creux}} \cdot \mathrm{Bézier}_3(t), & x \leq x_{\text{creux}} \\
-        (1-s)\,e_{\text{creux}} + s\,x, & x > x_{\text{creux}},\quad s = \frac{1}{1 + e^{-\alpha(x - x_{\text{creux}})}}
-        \end{cases}
-        \qquad t = \frac{x}{x_{\text{creux}}}
-        ''')
-        
-        st.markdown("**g(y) = auto-évaluation en fonction de l'apprentissage**")
-        st.latex(r'''
         g(y) = y + \alpha \cdot \sin(\omega \cdot y)
         ''')
 
         st.markdown("**evalearn(x) = auto-évaluation (par parties)**")
-        st.latex(r'''
-        \mathrm{evalearn}(x) =
-        \begin{cases}
-        a\, \sin\left(2\pi \frac{x}{R}\right) + b\, x, & 0 \leq x \leq \frac{R}{2} \\
-        \text{sigmoïde croissante}, & \frac{R}{2} < x \leq R \\
-        x, & x > R
-        \end{cases}
-        ''')
-        st.markdown(r'''
-        où :
-        - $a = \mathrm{maximum\_local} - \frac{R}{4} \cdot b$, $b = \frac{2\,\mathrm{minimum\_local}}{R}$
-        - sigmoïde centrée sur $x_c = \frac{3R}{4}$ et raideur contrôlée par ``pente_sigmoide`` :
-        ''')
-        st.latex(r'''
-        \mathrm{sigmoide}(x) = \mathrm{minimum\_local} + (R - \mathrm{minimum\_local}) \cdot \left[ \frac{1}{1 + e^{-\mathrm{pente\_sigmoide} \cdot \frac{x-x_c}{R/2}}} \right]
-        ''')
+        #à-compléter
         
     with col2:
         st.markdown("**A(x) = amplitude des oscillations**")
