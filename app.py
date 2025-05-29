@@ -24,47 +24,32 @@ def get_readme_content():
 def R(x, R0, k):
     return R0 * np.exp(k * x)
 
-def evalearn(x, R, pente_sigmoide):
-    """
-    Modélisation précise de la courbe d'auto-évaluation avec contraintes strictes.
-    
-    Paramètres :
-        x (float/array) : Compétence réelle
-        R (float) : Niveau de référence
-        pente_sigmoide (float) : Contrôle la raideur de la transition
-    
-    Retourne :
-        float/array : Valeur(s) de l'auto-évaluation
-    """
+
+def evalearn(x, R, max_local, min_local, pente_sig):
     x = np.asarray(x, dtype=float)
     y = np.zeros_like(x)
     
-    # Masques pour les zones
+    # Masques pour les segments
     mask_sin = (x >= 0) & (x <= R/2)
     mask_sig = (x > R/2) & (x <= R)
-    mask_lin = (x > R)
+    mask_lin = x > R
     
-    # 1. Segment sinusoïdal (0 ≤ x ≤ R/2)
+    # 1. Segment sinusoïdal ajusté
     if np.any(mask_sin):
-        k = 4 * np.pi / R
-        y[mask_sin] = (R/4) * (1 - np.cos(k * x[mask_sin]))
-    
-    # 2. Demi-sigmoïde ajustée (R/2 < x ≤ R)
+        phase = 2 * np.pi * x[mask_sin] / R
+        y[mask_sin] = max_local * np.sin(phase/2)**2  # Solution corrigée
+        
+    # 2. Sigmoïde avec point d'inflexion en R
     if np.any(mask_sig):
-        # Facteur de correction pour le point d'inflexion
-        phi = (1 + np.sqrt(5))/2  # Nombre d'or
-        k = pente_sigmoide * phi
-        
-        # Calcul de la sigmoïde normalisée
+        k = pente_sig * (1 + np.sqrt(5))/2  # Ajustement doré
         z = (x[mask_sig] - R/2)/(R/2)
-        sigmoid = 1 / (1 + np.exp(-k*(z - 0.5)))
-        
-        y[mask_sig] = R/4 + (3*R/4)*sigmoid
+        y[mask_sig] = min_local + (R - min_local)/(1 + np.exp(-k*(z - 0.5)))
     
-    # 3. Alignement linéaire (x > R)
+    # 3. Alignement parfait
     y[mask_lin] = x[mask_lin]
     
     return y
+
 
 
 def f(x, R0, k, f0, beta):
@@ -93,10 +78,9 @@ with tabs[0]:
 
 
     with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
-
-        k = st.slider("k (pente de la sigmoïde)", 0.0001, 0.01, 0.002, step=0.0001, format="%.4f")
+        max_local = st.slider("Maximum local", 0.0, 20.0, 5.0)
+        min_local = st.slider("Minimum local", 0.0, 20.0, 2.5)
         pente_sigmoide = st.slider("pente_sigmoide (raideur sigmoïde)", 0.01, 5.0, 1.0, step=0.01)
-
     
     # Section "Niveau de référence"
     with st.sidebar.expander("Niveau de référence", expanded=False):
@@ -127,10 +111,10 @@ with tabs[0]:
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
-    evalearn_values = evalearn(y, R0, pente_sigmoide)
+    evalearn_values = evalearn(y, R0, max_local, min_local, pente_sigmoide) 
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
-    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue', linewidth=2)
+    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
     ax1.set_ylabel('Niveau d\'apprentissage auto-évalué')
@@ -192,17 +176,10 @@ with tabs[0]:
         st.latex(r"""
         \text{evalearn}(x) = 
         \begin{cases} 
-        \frac{R}{4}\left(1 - \cos\left(\frac{4\pi x}{R}\right)\right) & \text{si } 0 \leq x \leq \frac{R}{2}, \\
-        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2(x - R/2)}{R} - 1\right)}} & \text{si } \frac{R}{2} < x \leq R, \\
-        x & \text{si } x > R.
+        \frac{R}{2} \sin^2\left(\frac{2\pi x}{R}\right) & x \in [0, \frac{R}{2}], \\
+        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2(x - R/2)}{R} - 1\right)}} & x \in (\frac{R}{2}, R], \\
+        x & x > R.
         \end{cases}
-        """)
-        
-        st.caption(r"""
-        **Avec paramètres** :  
-        - \( k = \phi \cdot \text{pente\_sigmoide} \) où \( \phi = \frac{1+\sqrt{5}}{2} \) (nombre d'or)  
-        - Conditions frontières : \( \text{evalearn}(0) = 0 \), \( \text{evalearn}(R) = R \)
-        - Continuité \( C^1 \) aux points de jonction
         """)
         
     with col2:
