@@ -189,7 +189,21 @@ with tabs[0]:
         ''')
 
         st.markdown("**evalearn(x) = auto-évaluation (par parties)**")
-        #à-compléter
+        st.latex(r"""
+        \text{evalearn}(x) = 
+        \begin{cases} 
+        \frac{R}{4}\left(1 - \cos\left(\frac{4\pi x}{R}\right)\right) & \text{si } 0 \leq x \leq \frac{R}{2}, \\
+        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2(x - R/2)}{R} - 1\right)}} & \text{si } \frac{R}{2} < x \leq R, \\
+        x & \text{si } x > R.
+        \end{cases}
+        """)
+        
+        st.caption(r"""
+        **Avec paramètres** :  
+        - \( k = \phi \cdot \text{pente\_sigmoide} \) où \( \phi = \frac{1+\sqrt{5}}{2} \) (nombre d'or)  
+        - Conditions frontières : \( \text{evalearn}(0) = 0 \), \( \text{evalearn}(R) = R \)
+        - Continuité \( C^1 \) aux points de jonction
+        """)
         
     with col2:
         st.markdown("**A(x) = amplitude des oscillations**")
