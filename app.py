@@ -102,13 +102,14 @@ with tabs[0]:
         y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000))
 
     # Générer les valeurs x et y
-    x = np.linspace(x_range[0], x_range[1], 500)
-    y = np.linspace(y_range[0], y_range[1], 500)
+    x = np.linspace(x_range[0], x_range[1], 500) #temps
+    y = np.linspace(y_range[0], y_range[1], 500) #niveau d'apprentissage
 
     # Plot de la fonction g
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6)) 
     evalearn_values = evalearn(y, R0, pente_sigmoide) 
+    ax1.plot(y, y, label=r'$\text{niveau auto-évalué = niveau réel}$', color='gray', linestyle='--')
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
