@@ -37,7 +37,7 @@ def evalearn(x, R, max_local, min_local, pente_sig):
     # 1. Segment sinusoïdal ajusté
     if np.any(mask_sin):
         phase = 2 * np.pi * x[mask_sin] / R
-        y[mask_sin] = max_local * np.sin(phase/2)**2  # Solution corrigée
+        y[mask_sin] = max_local * np.sin(phase/2)**2 
         
     # 2. Sigmoïde avec point d'inflexion en R
     if np.any(mask_sig):
@@ -76,21 +76,19 @@ with tabs[0]:
     
     st.sidebar.header("Paramètres")
 
+    with st.sidebar.expander("Niveau de référence", expanded=False):
+        R0 = st.slider("R0 (Niveau de référence initial)", 100, 5000, 1000)
+        k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.01, 0.1, 0.03)
 
     with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
-        max_local = st.slider("Maximum local", 0.0, 20.0, 5.0)
-        min_local = st.slider("Minimum local", 0.0, 20.0, 2.5)
         pente_sigmoide = st.slider("pente_sigmoide (raideur sigmoïde)", 0.01, 5.0, 1.0, step=0.01)
     
-    # Section "Niveau de référence"
-    with st.sidebar.expander("Niveau de référence", expanded=False):
-        R0 = st.slider("R0 (Niveau de référence initial)", 100, 2000, 1000)
-        k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.01, 0.1, 0.05)
+
 
     # Section "Courbe d'apprentissage"
     with st.sidebar.expander("Courbe d'apprentissage", expanded=False):
         f0 = st.slider("f0 (Niveau initial de compétence)", 10, 500, 100)
-        beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.5)
+        beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.3)
 
     # Section "Courbe d'auto-évaluation"
     with st.sidebar.expander("Courbe d'auto-évaluation oscillante", expanded=False):
@@ -100,8 +98,8 @@ with tabs[0]:
 
     # Section "Représentation"
     with st.sidebar.expander("Axes", expanded=False):
-        x_range = st.slider("Intervalle de temps (x)", 1, 100, (1, 100))
-        y_range = st.slider("Intervalle de niveau d'apprentissage (y)", 0, 10000, (0, 10000))
+        x_range = st.slider("Intervalle de temps", 1, 100, (1, 100))
+        y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000))
 
     # Générer les valeurs x et y
     x = np.linspace(x_range[0], x_range[1], 500)
@@ -111,7 +109,7 @@ with tabs[0]:
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     g_values = g(y, alpha, omega)
-    evalearn_values = evalearn(y, R0, max_local, min_local, pente_sigmoide) 
+    evalearn_values = evalearn(y, R0, R0/4, R0/2, pente_sigmoide) 
     ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
     ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
