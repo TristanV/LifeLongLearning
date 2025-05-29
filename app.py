@@ -25,7 +25,7 @@ def R(x, R0, k):
     return R0 * np.exp(k * x)
 
 
-def evalearn(x, R, max_local, min_local, pente_sig):
+def evalearn(x, R, pente_sigmoide):
     x = np.asarray(x, dtype=float)
     y = np.zeros_like(x)
     
@@ -34,18 +34,18 @@ def evalearn(x, R, max_local, min_local, pente_sig):
     mask_sig = (x > R/2) & (x <= R)
     mask_lin = x > R
     
-    # 1. Segment sinusoïdal ajusté
+    # 1. Segment sinusoïdal carré ajusté
     if np.any(mask_sin):
-        phase = 2 * np.pi * x[mask_sin] / R
-        y[mask_sin] = max_local * np.sin(phase/2)**2 
-        
+        phase = (2 * np.pi * x[mask_sin]) / R
+        y[mask_sin] = (R/2) * np.sin(phase/2)**2  # Solution validée
+    
     # 2. Sigmoïde avec point d'inflexion en R
     if np.any(mask_sig):
-        k = pente_sig * (1 + np.sqrt(5))/2  # Ajustement doré
-        z = (x[mask_sig] - R/2)/(R/2)
-        y[mask_sig] = min_local + (R - min_local)/(1 + np.exp(-k*(z - 0.5)))
+        k = pente_sigmoide * (1 + np.sqrt(5)) / 2  # Facteur de calibration
+        z = (2 * x[mask_sig]/R) - 1  # Normalisation [-1, 1]
+        y[mask_sig] = R/4 + (3*R/4) / (1 + np.exp(-k*z))
     
-    # 3. Alignement parfait
+    # 3. Alignement linéaire parfait
     y[mask_lin] = x[mask_lin]
     
     return y
@@ -107,11 +107,8 @@ with tabs[0]:
 
     # Plot de la fonction g
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
-    fig1, ax1 = plt.subplots(figsize=(12, 6))
-    g_values = g(y, alpha, omega)
-    evalearn_values = evalearn(y, R0, R0/4, R0/2, pente_sigmoide) 
-    ax1.plot(y, g_values, label=r'$g(x) = \text{niveau auto-évalué en fonction du niveau réel}$', color='purple')
-    ax1.plot(y, y, label=r'$g(x) = x = \text{auto-évaluation réaliste}$', color='gray', linestyle='--')
+    fig1, ax1 = plt.subplots(figsize=(12, 6)) 
+    evalearn_values = evalearn(y, R0, pente_sigmoide) 
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
@@ -175,7 +172,7 @@ with tabs[0]:
         \text{evalearn}(x) = 
         \begin{cases} 
         \frac{R}{2} \sin^2\left(\frac{2\pi x}{R}\right) & x \in [0, \frac{R}{2}], \\
-        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2(x - R/2)}{R} - 1\right)}} & x \in (\frac{R}{2}, R], \\
+        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2x}{R} - 1\right)}} & x \in (\frac{R}{2}, R], \\
         x & x > R.
         \end{cases}
         """)
