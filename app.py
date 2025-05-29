@@ -30,26 +30,31 @@ def evalearn(x, R, pente_sigmoide):
     y = np.zeros_like(x)
     
     # Masques pour les segments
-    mask_sin = (x >= 0) & (x <= R/2)
-    mask_sig = (x > R/2) & (x <= R)
-    mask_lin = x > R
+    mask_spline1 = (x >= 0) & (x <= R/4)
+    mask_spline2 = (x > R/4) & (x <= R/2)
+    mask_sigmoid = (x > R/2) & (x <= R)
+    mask_linear = x > R
     
-    # 1. Segment sinusoïdal carré ajusté
-    if np.any(mask_sin):
-        phase = (2 * np.pi * x[mask_sin]) / R
-        y[mask_sin] = (R/2) * np.sin(phase/2)**2  # Solution validée
+    # 1. Première partie de la spline (0 ≤ x ≤ R/4)
+    if np.any(mask_spline1):
+        t = np.pi * x[mask_spline1] / R
+        y[mask_spline1] = (24*R/np.pi**3) * t**2 * (3 - 4*t)
     
-    # 2. Sigmoïde avec point d'inflexion en R
-    if np.any(mask_sig):
-        k = pente_sigmoide * (1 + np.sqrt(5)) / 2  # Facteur de calibration
-        z = (2 * x[mask_sig]/R) - 1  # Normalisation [-1, 1]
-        y[mask_sig] = R/4 + (3*R/4) / (1 + np.exp(-k*z))
+    # 2. Seconde partie de la spline (R/4 < x ≤ R/2)
+    if np.any(mask_spline2):
+        t = np.pi * (x[mask_spline2] - R/4) / R
+        y[mask_spline2] = R - (24*R/np.pi**3) * t**2 * (3 + 4*t)
     
-    # 3. Alignement linéaire parfait
-    y[mask_lin] = x[mask_lin]
+    # 3. Sigmoïde ajustée (R/2 < x ≤ R)
+    if np.any(mask_sigmoid):
+        k = pente_sigmoide * (1 + np.sqrt(5))  # Facteur de calibration
+        z = (2 * x[mask_sigmoid]/R) - 1
+        y[mask_sigmoid] = R/4 + (3*R/4)/(1 + np.exp(-k*z))
+    
+    # 4. Régime linéaire (x > R)
+    y[mask_linear] = x[mask_linear]
     
     return y
-
 
 
 def f(x, R0, k, f0, beta):
@@ -169,14 +174,17 @@ with tabs[0]:
         ''')
 
         st.markdown("**evalearn(x) = auto-évaluation (par parties)**")
+        
         st.latex(r"""
         \text{evalearn}(x) = 
         \begin{cases} 
-        \frac{R}{2} \sin^2\left(\frac{2\pi x}{R}\right) & x \in [0, \frac{R}{2}], \\
-        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2x}{R} - 1\right)}} & x \in (\frac{R}{2}, R], \\
-        x & x > R.
+        \frac{24R}{\pi^3} \left(\frac{\pi x}{R}\right)^2 \left(3 - 4\frac{\pi x}{R}\right) & \text{si } 0 \leq x \leq \frac{R}{4}, \\
+        R - \frac{24R}{\pi^3} \left(\frac{\pi(x - R/4)}{R}\right)^2 \left(3 + 4\frac{\pi(x - R/4)}{R}\right) & \text{si } \frac{R}{4} < x \leq \frac{R}{2}, \\
+        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k\left(\frac{2x}{R} - 1\right)}} & \text{si } \frac{R}{2} < x \leq R, \\
+        x & \text{si } x > R.
         \end{cases}
         """)
+
         
     with col2:
         st.markdown("**A(x) = amplitude des oscillations**")
