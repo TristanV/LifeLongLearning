@@ -124,7 +124,7 @@ with tabs[0]:
     ax1.set_ylabel('Niveau d\'apprentissage auto-évalué')
     ax1.set_xlim(y_range[0], y_range[1])
     ax1.set_ylim(y_range[0], y_range[1])
-    ax1.legend()
+    ax1.legend(loc='lower right')  # <-- légende en bas à droite
     ax1.grid(True)
     st.pyplot(fig1, use_container_width=True)
 
