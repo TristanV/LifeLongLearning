@@ -59,18 +59,12 @@ def evalearn(x, R):
 
 
 
-def f(x, R0, k, f0, beta):
-    return R(x, R0, k) - (R0 - f0) * x**(-beta)
+def f(x, R, k, f0, beta):
+    return R(x, R, k) - (R - f0) * x**(-beta)
 
-def A(x, R0, k, f0, beta, alpha):
-    return alpha * (R(x, R0, k) - f(x, R0, k, f0, beta))
-
-def g(y, alpha, omega):
-    return y + alpha * np.sin(omega * y)
-
-def h(x, R0, k, f0, beta, alpha, omega):
-    return f(x, R0, k, f0, beta) + A(x, R0, k, f0, beta, alpha) * np.sin(omega * x)
-
+def h(x, R, k, f0, beta):
+    return evalearn(f(x, R, k, f0, beta), R)
+    
 # Créer les onglets
 tabs = st.tabs(["Apprentissage", "Information"])
 
@@ -88,21 +82,14 @@ with tabs[0]:
         k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.01, 0.1, 0.01)
 
     with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
-        pente_sigmoide = st.slider("pente_sigmoide (raideur sigmoïde)", 0.01, 5.0, 1.0, step=0.01)
+        pente_sigmoide = st.slider("non utilisé", 0.01, 5.0, 1.0, step=0.01)
     
 
     # Section "Courbe d'apprentissage"
     with st.sidebar.expander("Courbe d'apprentissage", expanded=False):
         f0 = st.slider("f0 (Niveau initial de compétence)", 10, 500, 100)
-        beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.3)
+        beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.05)
 
-    # Section "Courbe d'auto-évaluation"
-    with st.sidebar.expander("Courbe d'auto-évaluation oscillante", expanded=False):
-        alpha = st.slider("alpha (Facteur de proportionnalité)", 0.1, 2.0, 1.0)
-        omega = st.slider("omega (Fréquence des oscillations)", 0.1, 5.0, 1.0)
-
-
-    # Section "Représentation"
     with st.sidebar.expander("Axes", expanded=False):
         x_range = st.slider("Intervalle de temps", 1, 100, (1, 100), step=1)
         y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000), step=100)
@@ -111,7 +98,7 @@ with tabs[0]:
     x = np.linspace(x_range[0], x_range[1], 500) #temps
     y = np.linspace(y_range[0], y_range[1], 500) #niveau d'apprentissage
 
-    # Plot de la fonction g
+    # Plot de la fonction evalearn
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6)) 
     evalearn_values = evalearn(y, R0) 
@@ -137,7 +124,7 @@ with tabs[0]:
     f_constant_values = f(x, R0, 0, f0, beta)
     axs[0].plot(x, R_constant_values, label=r'$R(x)$', color='red', linestyle='--')
     axs[0].plot(x, f_constant_values, label=r'$f(x)$', color='green')
-    axs[0].plot(x, h(x, R0, 0, f0, beta, alpha, omega), label=r'$h(x)$', color='blue')
+    axs[0].plot(x, h(x, R0, 0, f0, beta), label=r'$h(x)$', color='blue')
     axs[0].set_title('Niveau d\'apprentissage avec objectif constant')
     axs[0].set_xlabel('Temps $x$')
     axs[0].set_ylabel('Niveau d\'apprentissage')
@@ -151,7 +138,7 @@ with tabs[0]:
     f_exponential_values = f(x, R0, k, f0, beta)
     axs[1].plot(x, R_exponential_values, label=r'$R(x)$', color='red', linestyle='--')
     axs[1].plot(x, f_exponential_values, label=r'$f(x)$', color='green')
-    axs[1].plot(x, h(x, R0, k, f0, beta, alpha, omega), label=r'$h(x)$', color='blue')
+    axs[1].plot(x, h(x, R0, k, f0, beta), label=r'$h(x)$', color='blue')
     axs[1].set_title('Niveau d\'apprentissage avec objectif croissant exponentiellement')
     axs[1].set_xlabel('Temps $x$')
     axs[1].set_ylabel('Niveau d\'apprentissage')
@@ -166,20 +153,12 @@ with tabs[0]:
     st.subheader("Équations des fonctions")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("**y = f(x) = apprentissage au fil du temps**")
-        st.latex(r'''
-        f(x) = R(x) - (R_0 - f_0) \cdot x^{-\beta}
-        ''')
 
-        st.markdown("**e(x) = auto-évaluation en fonction de la compétence réelle**")
-        st.latex(r'''
-        g(y) = y + \alpha \cdot \sin(\omega \cdot y)
-        ''')
 
-        st.markdown("**evalearn(x) = auto-évaluation (par parties)**")
+        st.markdown("**evalearn(x, R) = auto-évaluation (par parties) en fonction du niveau réel x et d'un objectif de référence R**")
         
         st.latex(r"""
-        \text{evalearn}(x) = 
+        \text{evalearn}(x,R) = 
         \begin{cases} 
         -\frac{64}{R^2}x^3 + \frac{24}{R}x^2 & x \in [0, \frac{R}{4}], \\
         \frac{32}{R^2}x^3 - \frac{36}{R}x^2 + 12x - \frac{3R}{4} & x \in (\frac{R}{4}, \frac{R}{2}], \\
@@ -190,14 +169,15 @@ with tabs[0]:
 
         
     with col2:
-        st.markdown("**A(x) = amplitude des oscillations**")
+        st.markdown("**y = f(x) = apprentissage au fil du temps**")
         st.latex(r'''
-        A(x) = \alpha \cdot (R(x) - f(x))
+        f(x) = R(x) - (R_0 - f_0) \cdot x^{-\beta}
         ''')
-        st.markdown("**h(x) = g(f(x)) = auto-évaluation au fil du temps**")
-        st.latex(r'''
-        h(x) = f(x) + A(x) \cdot \sin(\omega \cdot x)
-        ''')
+        
+        st.markdown("**h(x,R) = evalearn(f(x,R)) = auto-évaluation au fil du temps**")
+        st.latex(r"""
+        h(x, R, k, f_0, \beta) = \mathrm{evalearn}\left( R(x) - (R_0 - f_0)x^{-\beta},\ R \right)
+        """)
 
 with tabs[1]:
     st.title("Information")
