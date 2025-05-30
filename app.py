@@ -104,8 +104,8 @@ with tabs[0]:
 
     # Section "Représentation"
     with st.sidebar.expander("Axes", expanded=False):
-        x_range = st.slider("Intervalle de temps", 1, 100, (1, 100))
-        y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000))
+        x_range = st.slider("Intervalle de temps", 1, 100, (1, 100), step=1)
+        y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000), step=100)
 
     # Générer les valeurs x et y
     x = np.linspace(x_range[0], x_range[1], 500) #temps
