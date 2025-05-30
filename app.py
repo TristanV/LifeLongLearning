@@ -87,11 +87,11 @@ with tabs[0]:
 
     # Section "Courbe d'apprentissage"
     with st.sidebar.expander("Courbe d'apprentissage", expanded=False):
-        f0 = st.slider("f0 (Niveau initial de compétence)", 10, 500, 100)
-        beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.05)
+        f0 = st.slider("f0 (Niveau initial de compétence)", 10, 1000, 100)
+        beta = st.slider("beta (Taux d'apprentissage)", 0.01, 0.99, 0.3)
 
     with st.sidebar.expander("Axes", expanded=False):
-        x_range = st.slider("Intervalle de temps", 1, 100, (1, 100), step=1)
+        x_range = st.slider("Intervalle de temps", 1, 1000, (1, 100), step=1)
         y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000), step=100)
 
     # Générer les valeurs x et y
