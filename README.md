@@ -6,38 +6,39 @@ LifeLongLearning est une application interactive permettant de simuler, visualis
 
 ## Fonctionnalités principales
 
+- **Simulation de l’auto-évaluation**
+  - Prise en compte de l’auto-évaluation par rapport au niveau réel, avec la possibilité de modéliser des oscillations (sur/sous-évaluation).
+
+La fonction `evalearn` modélise une progression d’auto-évaluation selon le niveau d'apprentissage par rapport à un objectif `R`, avec plusieurs régimes :
+
+- **Croissance initiale (0 ≤ x ≤ R/2)** : composée de deux splines cubiques pour assurer une montée progressive et continue de la valeur, avec un point d’inflexion à `x = R/4`.
+- **Transition polynomiale (R/2 < x ≤ R)** : un polynôme de degré 4 prend le relais pour garantir une transition douce jusqu’au seuil `R`.
+- **Régime linéaire (x > R)** : au-delà du seuil, la fonction devient strictement linéaire (y = x).
+
+**Cas particuliers** :
+- Pour `x < 0`, la valeur retournée est 0.
+- Les points de jointure (`x = 0`, `x = R/4`, `x = R/2`, `x = R`) assurent la continuité et la dérivabilité de la fonction.
+- Pour `x > R`, la progression suit la première bissectrice du plan (droite d'auto-évaluation réaliste y=x).
+
+Cette construction permet de représenter différentes phases d’apprentissage ou d’évaluation : démarrage progressif, accélération, plafonnement, puis dépassement linéaire de l’objectif.
+
 - **Simulation de l’apprentissage au fil du temps**
   - Modélisation de la progression du niveau d’apprentissage en fonction de paramètres personnalisables tels que :
     - le niveau initial de compétence (`f0`)
     - le taux d’apprentissage (`beta`)
-    - le niveau de référence initial (`R0`)
-    - le taux de croissance exponentielle de l’objectif (`k`)
+    - le niveau de référence initial, correspondant à l'objectif de compétences à atteindre (`R0`)
+    - le taux de croissance exponentielle de l’objectif (`k`), dans la configuration où une quantité importante de nouveaux contenus vient augmenter l'objectif à atteindre.
   - Affichage graphique de l’évolution du niveau réel d’apprentissage (`f(x)`).
-
-- **Simulation de l’auto-évaluation**
-  - Prise en compte de l’auto-évaluation par rapport au niveau réel, avec la possibilité de modéliser des oscillations (sur/sous-évaluation).
-  - Paramétrage de l’amplitude (`alpha`) et de la fréquence (`omega`) des oscillations.
-  - Visualisation de la courbe d’auto-évaluation (`g(y)` et `h(x)`).
 
 - **Paramétrage interactif**
   - Interface utilisateur basée sur Streamlit avec sidebar permettant de régler dynamiquement tous les paramètres des modèles et des courbes.
-  - Sélection des plages de temps (`x`) et des niveaux d’apprentissage affichés (`y`).
+  - Sélection des plages de temps et des niveaux d’apprentissage affichés.
 
 - **Visualisation graphique**
   - Génération automatique de graphiques interactifs :
     - Courbe d’auto-évaluation en fonction de l’apprentissage réel
     - Évolution comparée de l’apprentissage réel et de l’auto-évaluation dans le temps, avec objectif constant ou croissant exponentiellement
 
-- **Présentation des modèles mathématiques**
-  - Affichage des équations utilisées pour la modélisation :
-    - Fonction d’apprentissage réel :  
-      `f(x) = R(x) - (R_0 - f_0) * x^{-β}`
-    - Fonction d’auto-évaluation :  
-      `g(y) = y + α * sin(ω * y)`
-    - Amplitude des oscillations :  
-      `A(x) = α * (R(x) - f(x))`
-    - Auto-évaluation dans le temps :  
-      `h(x) = f(x) + A(x) * sin(ω * x)`
 
 ## Utilisation
 
@@ -58,4 +59,4 @@ Ajustez les paramètres dans la sidebar pour observer l’impact sur les courbes
 
 ## Objectif
 
-LifeLongLearning vise à offrir un outil pédagogique pour explorer expérimentalement les processus d’apprentissage et d’auto-évaluation, utile pour les formateurs, les apprenants, les chercheurs en sciences de l’éducation et toute personne intéressée par la progression des compétences dans la durée.
+LifeLongLearning vise à offrir un outil pédagogique pour explorer expérimentalement les processus d’apprentissage et d’auto-évaluation.
