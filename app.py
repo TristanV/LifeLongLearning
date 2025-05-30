@@ -115,7 +115,7 @@ with tabs[0]:
     # Plot de la fonction g
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6)) 
-    evalearn_values = evalearn(y, R0, pente_sigmoide) 
+    evalearn_values = evalearn(y, R0) 
     ax1.plot(y, y, label=r'$\text{niveau auto-évalué = niveau réel}$', color='gray', linestyle='--')
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
