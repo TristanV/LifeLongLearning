@@ -85,12 +85,11 @@ with tabs[0]:
 
     with st.sidebar.expander("Niveau de référence", expanded=False):
         R0 = st.slider("R0 (Niveau de référence initial)", 100, 5000, 4000, step=100)
-        k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.001, 0.1, 0.005)
+        k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.01, 0.1, 0.01)
 
     with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
         pente_sigmoide = st.slider("pente_sigmoide (raideur sigmoïde)", 0.01, 5.0, 1.0, step=0.01)
     
-
 
     # Section "Courbe d'apprentissage"
     with st.sidebar.expander("Courbe d'apprentissage", expanded=False):
