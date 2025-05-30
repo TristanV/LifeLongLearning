@@ -169,6 +169,17 @@ with tabs[0]:
 
         
     with col2:
+        st.markdown("**Ref(x, R, k) = objectif exponentiel en fonction du temps**")
+        st.latex(r"""
+        R(x, R, k) = R \cdot e^{k x}
+        """)
+        st.markdown(
+            "où :\n"
+            "- $R$ est le niveau de référence initial\n"
+            "- $k$ est le taux de croissance exponentielle\n"
+            "- $x$ est le temps"
+        )
+        
         st.markdown("**y = f(x, R_0, f_0, beta) = apprentissage au fil du temps**")
         st.latex(r'''
         f(x) = R(x) - (R_0 - f_0) \cdot x^{-\beta}
