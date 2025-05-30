@@ -134,7 +134,7 @@ with tabs[0]:
     axs[0].grid(True)
 
     # Objectif exponentiel
-    R_exponential_values = R(x, R0, k)
+    R_exponential_values = Ref(x, R0, k)
     f_exponential_values = f(x, R0, k, f0, beta)
     axs[1].plot(x, R_exponential_values, label=r'$R(x)$', color='red', linestyle='--')
     axs[1].plot(x, f_exponential_values, label=r'$f(x)$', color='green')
