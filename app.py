@@ -21,8 +21,8 @@ def get_readme_content():
         return "README.md non trouvé."
 
 # Définir les fonctions (inchangées)
-def R(x, R0, k):
-    return R0 * np.exp(k * x)
+def Ref(x, R, k):
+    return R * np.exp(k * x)
 
 
 def evalearn(x, R):
@@ -60,7 +60,7 @@ def evalearn(x, R):
 
 
 def f(x, R, k, f0, beta):
-    return R(x, R, k) - (R - f0) * x**(-beta)
+    return Ref(x, R, k) - (R - f0) * x**(-beta)
 
 def h(x, R, k, f0, beta):
     return evalearn(f(x, R, k, f0, beta), R)
@@ -169,7 +169,7 @@ with tabs[0]:
 
         
     with col2:
-        st.markdown("**y = f(x) = apprentissage au fil du temps**")
+        st.markdown("**y = f(x, R_0, f_0, beta) = apprentissage au fil du temps**")
         st.latex(r'''
         f(x) = R(x) - (R_0 - f_0) \cdot x^{-\beta}
         ''')
