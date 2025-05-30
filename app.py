@@ -116,6 +116,8 @@ with tabs[0]:
     fig1, ax1 = plt.subplots(figsize=(12, 6)) 
     evalearn_values = evalearn(y, R0) 
     ax1.plot(y, y, label=r'$\text{niveau auto-évalué = niveau réel}$', color='gray', linestyle='--')
+    ax1.axhline(y=R0, color='red', linestyle=':', linewidth=1, label=r'$y = R_0$')
+    ax1.axvline(x=R0, color='red', linestyle=':', linewidth=1, label=r'$x = R_0$')
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('Niveau d\'apprentissage réel')
