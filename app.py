@@ -25,35 +25,34 @@ def R(x, R0, k):
     return R0 * np.exp(k * x)
 
 
-def evalearn(x, R, pente_sigmoide):
+def evalearn(x, R):
     x = np.asarray(x, dtype=float)
     y = np.zeros_like(x)
     
     # Masques pour les segments
     mask_spline1 = (x >= 0) & (x <= R/4)
     mask_spline2 = (x > R/4) & (x <= R/2)
-    mask_sigmoid = (x > R/2) & (x <= R)
+    mask_poly = (x > R/2) & (x <= R)
     mask_linear = x > R
     
-    # 1. Spline cubique par morceaux (0 ≤ x ≤ R/2)
-    if np.any(mask_spline1) or np.any(mask_spline2):
-        # Premier segment cubique (0 ≤ x ≤ R/4)
-        if np.any(mask_spline1):
-            x1 = x[mask_spline1]
-            y[mask_spline1] = (-64/(R**2))*x1**3 + (24/R)*x1**2
-        
-        # Deuxième segment cubique (R/4 < x ≤ R/2)
-        if np.any(mask_spline2):
-            x2 = x[mask_spline2]
-            y[mask_spline2] = (32/(R**2))*x2**3 - (36/R)*x2**2 + 12*x2 - (3*R)/4
+    # 1. Spline cubique (0 ≤ x ≤ R/2)
+    if np.any(mask_spline1):
+        x1 = x[mask_spline1]
+        y[mask_spline1] = (-64/(R**2))*x1**3 + (24/R)*x1**2
     
-    # 2. Sigmoïde ajustée (R/2 < x ≤ R)
-    if np.any(mask_sigmoid):
-        k = pente_sigmoide * (1 + np.sqrt(5))  # Facteur de calibration
-        z = (2 * x[mask_sigmoid]/R) - 1
-        y[mask_sigmoid] = R/4 + (3*R/4)/(1 + np.exp(-k*z))
+    if np.any(mask_spline2):
+        x2 = x[mask_spline2]
+        y[mask_spline2] = (32/(R**2))*x2**3 - (36/R)*x2**2 + 12*x2 - (3*R)/4
     
-    # 3. Régime expert linéaire (x > R)
+    # 2. Segment polynomial (R/2 < x ≤ R)
+    if np.any(mask_poly):
+        t = x[mask_poly] - R/2
+        a = 20 / R**3
+        b = -28 / R**2
+        c = 12 / R
+        y[mask_poly] = a*t**4 + b*t**3 + c*t**2 + R/4
+    
+    # 3. Régime linéaire (x > R)
     y[mask_linear] = x[mask_linear]
     
     return y
@@ -183,7 +182,7 @@ with tabs[0]:
         \begin{cases} 
         -\frac{64}{R^2}x^3 + \frac{24}{R}x^2 & x \in [0, \frac{R}{4}], \\
         \frac{32}{R^2}x^3 - \frac{36}{R}x^2 + 12x - \frac{3R}{4} & x \in (\frac{R}{4}, \frac{R}{2}], \\
-        \frac{R}{4} + \frac{3R}{4} \cdot \frac{1}{1 + e^{-k(\frac{2x}{R} - 1)}} & x \in (\frac{R}{2}, R], \\
+        \frac{20}{R^3}t^4 - \frac{28}{R^2}t^3 + \frac{12}{R}t^2 + \frac{R}{4} & t = x - \frac{R}{2},\ x \in (\frac{R}{2}, R], \\
         x & x > R.
         \end{cases}
         """)
