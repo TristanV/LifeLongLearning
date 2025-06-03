@@ -258,6 +258,25 @@ trace_href = go.Scatter3d(
     line=dict(color='red', width=6, dash='dot')
 )
 
+# Définition des bornes (à adapter à tes variables)
+t_min, t_max = t_vals[0], t_vals[-1]
+c_min, c_max = y_range[0], y_range[1]
+
+# Création de la grille pour le plan e=c
+t_plane = np.array([t_min, t_max, t_max, t_min])
+c_plane = np.array([c_min, c_min, c_max, c_max])
+e_plane = c_plane  # puisque e = c
+
+plane_trace = go.Mesh3d(
+    x=t_plane,
+    y=c_plane,
+    z=e_plane,
+    color='gray',
+    opacity=0.2,
+    name='Plan e=c',
+    showscale=False
+)
+
 layout = go.Layout(
     scene=dict(
         xaxis_title='Temps (t)',
@@ -268,7 +287,7 @@ layout = go.Layout(
     height=900 
 )
 
-fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href], layout=layout)
+fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href, plane_trace], layout=layout)
 
 # Pour afficher avec Streamlit
 st.plotly_chart(fig, use_container_width=True)
