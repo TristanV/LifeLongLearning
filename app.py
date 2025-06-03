@@ -80,9 +80,6 @@ with tabs[0]:
     with st.sidebar.expander("Niveau de référence", expanded=False):
         R0 = st.slider("R0 (Niveau de référence initial)", 100, 5000, 4000, step=100)
         k = st.slider("k (Taux de croissance exponentielle du niveau de référence)", 0.01, 0.1, 0.01)
-
-    with st.sidebar.expander("Courbe d'auto-évaluation", expanded=False):
-        pente_sigmoide = st.slider("non utilisé", 0.01, 5.0, 1.0, step=0.01)
     
 
     # Section "Courbe d'apprentissage"
@@ -102,13 +99,13 @@ with tabs[0]:
     st.subheader("Variation de l'auto-évaluation en fonction de l'apprentissage réel")
     fig1, ax1 = plt.subplots(figsize=(12, 6)) 
     evalearn_values = evalearn(y, R0) 
-    ax1.plot(y, y, label=r'$\text{niveau auto-évalué = niveau réel}$', color='gray', linestyle='--')
-    ax1.axhline(y=R0, color='red', linestyle=':', linewidth=1, label=r'$y = R_0$')
-    ax1.axvline(x=R0, color='red', linestyle=':', linewidth=1, label=r'$x = R_0$')
-    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(x)$', color='blue')
+    ax1.plot(y, y, label=r'$\text{niveau auto-évalué e = niveau réel c}$', color='gray', linestyle='--')
+    ax1.axhline(y=R0, color='red', linestyle=':', linewidth=1, label=r'$e(c) = R_0$')
+    ax1.axvline(x=R0, color='red', linestyle=':', linewidth=1, label=r'$c = R_0$')
+    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(c)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
-    ax1.set_xlabel('Niveau d\'apprentissage réel')
-    ax1.set_ylabel('Niveau d\'apprentissage auto-évalué')
+    ax1.set_xlabel('c = Niveau d\'apprentissage réel')
+    ax1.set_ylabel('e = Niveau d\'apprentissage auto-évalué')
     ax1.set_xlim(y_range[0], y_range[1])
     ax1.set_ylim(y_range[0], y_range[1])
     ax1.legend(loc='lower right')  # <-- légende en bas à droite
@@ -122,11 +119,11 @@ with tabs[0]:
     # Objectif constant
     R_constant_values = R0 * np.ones_like(x)
     f_constant_values = f(x, R0, 0, f0, beta)
-    axs[0].plot(x, R_constant_values, label=r'$R(x)$', color='red', linestyle='--')
-    axs[0].plot(x, f_constant_values, label=r'$f(x)$', color='green')
-    axs[0].plot(x, h(x, R0, 0, f0, beta), label=r'$h(x)$', color='blue')
+    axs[0].plot(x, R_constant_values, label=r'$R(t)$', color='red', linestyle='--')
+    axs[0].plot(x, f_constant_values, label=r'$f(t)$', color='green')
+    axs[0].plot(x, h(x, R0, 0, f0, beta), label=r'$h(t)$', color='blue')
     axs[0].set_title('Niveau d\'apprentissage avec objectif constant')
-    axs[0].set_xlabel('Temps $x$')
+    axs[0].set_xlabel('Temps $t$')
     axs[0].set_ylabel('Niveau d\'apprentissage')
     axs[0].set_xlim(x_range[0], x_range[1])
     axs[0].set_ylim(y_range[0], y_range[1])
@@ -136,11 +133,11 @@ with tabs[0]:
     # Objectif exponentiel
     R_exponential_values = Ref(x, R0, k)
     f_exponential_values = f(x, R0, k, f0, beta)
-    axs[1].plot(x, R_exponential_values, label=r'$R(x)$', color='red', linestyle='--')
-    axs[1].plot(x, f_exponential_values, label=r'$f(x)$', color='green')
-    axs[1].plot(x, h(x, R0, k, f0, beta), label=r'$h(x)$', color='blue')
+    axs[1].plot(x, R_exponential_values, label=r'$R(t)$', color='red', linestyle='--')
+    axs[1].plot(x, f_exponential_values, label=r'$f(t)$', color='green')
+    axs[1].plot(x, h(x, R0, k, f0, beta), label=r'$h(t)$', color='blue')
     axs[1].set_title('Niveau d\'apprentissage avec objectif croissant exponentiellement')
-    axs[1].set_xlabel('Temps $x$')
+    axs[1].set_xlabel('Temps $t$')
     axs[1].set_ylabel('Niveau d\'apprentissage')
     axs[1].set_xlim(x_range[0], x_range[1])
     axs[1].set_ylim(y_range[0], y_range[1])
@@ -155,39 +152,39 @@ with tabs[0]:
     with col1:
 
 
-        st.markdown("**evalearn(x, R) = auto-évaluation (par parties) en fonction du niveau réel x et d'un objectif de référence R**")
+        st.markdown("**evalearn(x, R) = auto-évaluation (par parties) en fonction du niveau réel c et d'un objectif de référence R**")
         
         st.latex(r"""
-        \text{evalearn}(x,R) = 
+        \text{evalearn}(c,R) = 
         \begin{cases} 
-        -\frac{64}{R^2}x^3 + \frac{24}{R}x^2 & x \in [0, \frac{R}{4}], \\
-        \frac{32}{R^2}x^3 - \frac{36}{R}x^2 + 12x - \frac{3R}{4} & x \in (\frac{R}{4}, \frac{R}{2}], \\
-        \frac{20}{R^3}t^4 - \frac{28}{R^2}t^3 + \frac{12}{R}t^2 + \frac{R}{4} & t = x - \frac{R}{2},\ x \in (\frac{R}{2}, R], \\
-        x & x > R.
+        -\frac{64}{R^2}c^3 + \frac{24}{R}c^2 & c \in [0, \frac{R}{4}], \\
+        \frac{32}{R^2}c^3 - \frac{36}{R}c^2 + 12c - \frac{3R}{4} & c \in (\frac{R}{4}, \frac{R}{2}], \\
+        \frac{20}{R^3}u^4 - \frac{28}{R^2}u^3 + \frac{12}{R}u^2 + \frac{R}{4} & u = c - \frac{R}{2},\ c \in (\frac{R}{2}, R], \\
+        c & c > R.
         \end{cases}
         """)
 
         
     with col2:
-        st.markdown("**Ref(x, R, k) = objectif exponentiel en fonction du temps**")
+        st.markdown("**Ref(t, R, k) = objectif exponentiel en fonction du temps**")
         st.latex(r"""
-        R(x, R, k) = R \cdot e^{k x}
+        Ref(t, R, k) = R_0 \cdot e^{k t}
         """)
         st.markdown(
             "où :\n"
-            "- $R$ est le niveau de référence initial\n"
+            "- $R_0$ est le niveau de référence initial\n"
             "- $k$ est le taux de croissance exponentielle\n"
-            "- $x$ est le temps"
+            "- $t$ est le temps"
         )
         
-        st.markdown("**y = f(x, R_0, f_0, beta) = apprentissage au fil du temps**")
+        st.markdown("**y = f(t, R_0, f_0, beta) = apprentissage au fil du temps**")
         st.latex(r'''
-        f(x) = R(x) - (R_0 - f_0) \cdot x^{-\beta}
+        f(t) = R(t) - (R_0 - f_0) \cdot t^{-\beta}
         ''')
         
-        st.markdown("**h(x,R) = evalearn(f(x,R)) = auto-évaluation au fil du temps**")
+        st.markdown("**h(t,R) = evalearn(f(t,R)) = auto-évaluation au fil du temps**")
         st.latex(r"""
-        h(x, R, k, f_0, \beta) = \mathrm{evalearn}\left( R(x) - (R_0 - f_0)x^{-\beta},\ R \right)
+        h(t, R, k, f_0, \beta) = \mathrm{evalearn}\left( Ref(t) - (R_0 - f_0)t^{-\beta},\ R \right)
         """)
 
 with tabs[1]:
