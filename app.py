@@ -226,6 +226,17 @@ trace_f = go.Scatter3d(
     line=dict(color='green', width=6)
 )
 
+# Calcul Ref(t, R0, k)
+ref_f = Ref(t_f, R0, k)
+trace_ref = go.Scatter3d(
+    x=t_f,
+    y=ref_f,
+    z=np.zeros_like(t_f),
+    mode='lines',
+    name='Ref (t, c)',
+    line=dict(color='red', width=6, dash='dot')
+)
+
 # 3. Courbe h: dans le plan (t, e)
 t_h = t_vals
 e_h = h(t_h, R0, k, f0, beta)
@@ -248,7 +259,7 @@ layout = go.Layout(
     height=900 
 )
 
-fig = go.Figure(data=[trace_evalearn, trace_f, trace_h], layout=layout)
+fig = go.Figure(data=[trace_evalearn, trace_f, trace_ref, trace_h], layout=layout)
 
 # Pour afficher avec Streamlit
 st.plotly_chart(fig, use_container_width=True)
