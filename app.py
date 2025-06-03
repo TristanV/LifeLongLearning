@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 import os
 
 # Set page config to wide layout
@@ -98,6 +99,7 @@ with tabs[0]:
         x_range = st.slider("Intervalle de temps", 1, 1000, (1, 100), step=1)
         y_range = st.slider("Intervalle de niveau d'apprentissage", 0, 10000, (0, 5000), step=100)
 
+    # ################################################################ 
     # Générer les valeurs x et y
     x = np.linspace(x_range[0], x_range[1], 500) #temps
     y = np.linspace(y_range[0], y_range[1], 500) #niveau d'apprentissage
@@ -132,7 +134,7 @@ with tabs[0]:
     \end{cases}
     """)
 
-    
+    # ################################################################ 
     # Plot des fonctions pour R(x) constant et exponentiel
     st.subheader("Variation de l'auto-évaluation et de l'apprentissage réel en fonction du temps")
     fig, axs = plt.subplots(1, 2, figsize=(24, 6))
@@ -194,6 +196,58 @@ with tabs[0]:
         st.latex(r"""
         h(t, R_0, k, f_0, \beta) = \mathrm{evalearn}\left( Ref(t,R_0,k) - (R_0 - f_0)t^{-\beta},\ Ref(t, R_0, k) \right)
         """)
+
+
+# ################################################################ 
+# Échantillons pour les axes
+t_vals = np.linspace(x_range[0], x_range[1], 500) #temps
+c_vals = np.linspace(y_range[0], y_range[1], 500) #niveau d'apprentissage
+# 1. Courbe evalearn: dans le plan (c, e)
+c_evalearn = c_vals
+e_evalearn = evalearn(c_evalearn, R0)
+trace_evalearn = go.Scatter3d(
+    x=np.zeros_like(c_evalearn),  # t=0 pour ce plan
+    y=c_evalearn,
+    z=e_evalearn,
+    mode='lines',
+    name='evalearn (c, e)'
+)
+
+# 2. Courbe f: dans le plan (t, c)
+t_f = t_vals
+c_f = f(t_f, R0, k, f0, beta)
+trace_f = go.Scatter3d(
+    x=t_f,
+    y=c_f,
+    z=np.zeros_like(t_f),  # e=0 pour ce plan
+    mode='lines',
+    name='f (t, c)'
+)
+
+# 3. Courbe h: dans le plan (t, e)
+t_h = t_vals
+e_h = h(t_h, R0, k, f0, beta)
+trace_h = go.Scatter3d(
+    x=t_h,
+    y=np.zeros_like(t_h),  # c=0 pour ce plan
+    z=e_h,
+    mode='lines',
+    name='h (t, e)'
+)
+
+layout = go.Layout(
+    scene=dict(
+        xaxis_title='Temps (t)',
+        yaxis_title='Compétence réelle (c)',
+        zaxis_title='Compétence auto-évaluée (e)',
+    ),
+    title='Courbes 3D de compétence et auto-évaluation'
+)
+
+fig = go.Figure(data=[trace_evalearn, trace_f, trace_h], layout=layout)
+
+# Pour afficher avec Streamlit
+st.plotly_chart(fig)
 
 with tabs[1]:
     st.title("Information")
