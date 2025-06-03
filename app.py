@@ -228,7 +228,7 @@ trace_f = go.Scatter3d(
 
 # Calcul Ref(t, R0, k)
 ref_f = Ref(t_f, R0, k)
-trace_ref = go.Scatter3d(
+trace_fref = go.Scatter3d(
     x=t_f,
     y=ref_f,
     z=np.zeros_like(t_f),
@@ -249,6 +249,15 @@ trace_h = go.Scatter3d(
     line=dict(color='blue', width=6)
 )
 
+trace_href = go.Scatter3d(
+    x=t_h,
+    y=np.zeros_like(t_h),  # c=0 pour ce plan
+    z=ref_f,
+    mode='lines',
+    name='Ref (t, e)',
+    line=dict(color='red', width=6, dash='dot')
+)
+
 layout = go.Layout(
     scene=dict(
         xaxis_title='Temps (t)',
@@ -259,7 +268,7 @@ layout = go.Layout(
     height=900 
 )
 
-fig = go.Figure(data=[trace_evalearn, trace_f, trace_ref, trace_h], layout=layout)
+fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href], layout=layout)
 
 # Pour afficher avec Streamlit
 st.plotly_chart(fig, use_container_width=True)
