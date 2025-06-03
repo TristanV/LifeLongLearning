@@ -59,11 +59,11 @@ def evalearn(x, R):
 
 
 
-def f(x, R, k, f0, beta):
-    return Ref(x, R, k) - (R - f0) * x**(-beta)
+def f(x, R0, k, f0, beta):
+    return Ref(x, R0, k) - (R0 - f0) * x**(-beta)
 
 def h(x, R, k, f0, beta):
-    return evalearn(f(x, R, k, f0, beta), R)
+    return evalearn(f(x, R0, k, f0, beta), Ref(x, R0, k))
     
 # Créer les onglets
 tabs = st.tabs(["Apprentissage", "Information"])
@@ -152,7 +152,7 @@ with tabs[0]:
     with col1:
 
 
-        st.markdown("**evalearn(x, R) = auto-évaluation (par parties) en fonction du niveau réel c et d'un objectif de référence R**")
+        st.markdown("**e = evalearn(c, R) = auto-évaluation (par parties) en fonction du niveau réel c et d'un objectif de référence R**")
         
         st.latex(r"""
         \text{evalearn}(c,R) = 
@@ -166,9 +166,9 @@ with tabs[0]:
 
         
     with col2:
-        st.markdown("**Ref(t, R, k) = objectif exponentiel en fonction du temps**")
+        st.markdown("**Ref = objectif exponentiel en fonction du temps**")
         st.latex(r"""
-        Ref(t, R, k) = R_0 \cdot e^{k t}
+        Ref(t, R_0, k) = R_0 \cdot e^{k t}
         """)
         st.markdown(
             "où :\n"
@@ -177,14 +177,14 @@ with tabs[0]:
             "- $t$ est le temps"
         )
         
-        st.markdown("**y = f(t, R_0, f_0, beta) = apprentissage au fil du temps**")
+        st.markdown("**f = apprentissage au fil du temps**")
         st.latex(r'''
-        f(t) = R(t) - (R_0 - f_0) \cdot t^{-\beta}
+        f(t, R_0, k, f_0, \beta) = Ref(t, R_0, k) - (R_0 - f_0) \cdot t^{-\beta}
         ''')
         
-        st.markdown("**h(t,R) = evalearn(f(t,R)) = auto-évaluation au fil du temps**")
+        st.markdown("**h = evalearn(f(t)) = auto-évaluation au fil du temps**")
         st.latex(r"""
-        h(t, R, k, f_0, \beta) = \mathrm{evalearn}\left( Ref(t) - (R_0 - f_0)t^{-\beta},\ R \right)
+        h(t, R_0, k, f_0, \beta) = \mathrm{evalearn}\left( Ref(t,R_0,k) - (R_0 - f_0)t^{-\beta},\ Ref(t, R_0, k) \right)
         """)
 
 with tabs[1]:
