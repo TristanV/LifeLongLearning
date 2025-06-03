@@ -62,7 +62,7 @@ def evalearn(x, R):
 def f(x, R0, k, f0, beta):
     return Ref(x, R0, k) - (R0 - f0) * x**(-beta)
 
-def h(x, R, k, f0, beta):
+def h(x, R0, k, f0, beta):
     return evalearn(f(x, R0, k, f0, beta), Ref(x, R0, k))
     
 # Créer les onglets
@@ -100,7 +100,7 @@ with tabs[0]:
     fig1, ax1 = plt.subplots(figsize=(12, 6)) 
     evalearn_values = evalearn(y, R0) 
     ax1.plot(y, y, label=r'$\text{niveau auto-évalué e = niveau réel c}$', color='gray', linestyle='--')
-    ax1.axhline(y=R0, color='red', linestyle=':', linewidth=1, label=r'$e(c) = R_0$')
+    ax1.axhline(y=R0, color='red', linestyle=':', linewidth=1, label=r'$e = R_0$')
     ax1.axvline(x=R0, color='red', linestyle=':', linewidth=1, label=r'$c = R_0$')
     ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(c)$', color='blue')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
