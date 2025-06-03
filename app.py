@@ -111,7 +111,7 @@ with tabs[0]:
     ax1.plot(y, y, label=r'$\text{niveau auto-évalué e = niveau réel c}$', color='gray', linestyle='--')
     ax1.axhline(y=R0, color='red', linestyle=':', linewidth=1, label=r'$e = R_0$')
     ax1.axvline(x=R0, color='red', linestyle=':', linewidth=1, label=r'$c = R_0$')
-    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(c)$', color='blue')
+    ax1.plot(y, evalearn_values, label=r'$\mathrm{evalearn}(c)$', color='orange')
     ax1.set_title('Niveau auto-évalué en fonction du niveau réel')
     ax1.set_xlabel('c = Niveau d\'apprentissage réel')
     ax1.set_ylabel('e = Niveau d\'apprentissage auto-évalué')
@@ -210,7 +210,8 @@ trace_evalearn = go.Scatter3d(
     y=c_evalearn,
     z=e_evalearn,
     mode='lines',
-    name='evalearn (c, e)'
+    name='evalearn (c, e)',
+    line=dict(color='orange', width=6)
 )
 
 # 2. Courbe f: dans le plan (t, c)
@@ -221,7 +222,8 @@ trace_f = go.Scatter3d(
     y=c_f,
     z=np.zeros_like(t_f),  # e=0 pour ce plan
     mode='lines',
-    name='f (t, c)'
+    name='f (t, c)',
+    line=dict(color='green', width=6)
 )
 
 # 3. Courbe h: dans le plan (t, e)
@@ -232,7 +234,8 @@ trace_h = go.Scatter3d(
     y=np.zeros_like(t_h),  # c=0 pour ce plan
     z=e_h,
     mode='lines',
-    name='h (t, e)'
+    name='h (t, e)',
+    line=dict(color='blue', width=6)
 )
 
 layout = go.Layout(
@@ -247,7 +250,7 @@ layout = go.Layout(
 fig = go.Figure(data=[trace_evalearn, trace_f, trace_h], layout=layout)
 
 # Pour afficher avec Streamlit
-st.plotly_chart(fig)
+st.plotly_chart(fig, use_container_width=True)
 
 with tabs[1]:
     st.title("Information")
