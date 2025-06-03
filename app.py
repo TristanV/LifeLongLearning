@@ -58,12 +58,19 @@ def evalearn(x, R):
     return y
 
 
+# compétence acquise en fonction du temps et d'un taux d'apprentissage, avec un objectif de référence éventuellement variable
+def f(t, R0, k, f0, beta):
+    return Ref(t, R0, k) - (R0 - f0) * t**(-beta)
 
-def f(x, R0, k, f0, beta):
-    return Ref(x, R0, k) - (R0 - f0) * x**(-beta)
-
-def h(x, R0, k, f0, beta):
-    return evalearn(f(x, R0, k, f0, beta), Ref(x, R0, k))
+# wrapper pour calculer evalearn en fonction du temps t , c'est à dire en calculant au préalable la compétence f(t) et la référence Ref(t)
+def h(t, R0, k, f0, beta):
+    x = f(t, R0, k, f0, beta)
+    R = Ref(t, R0, k)
+    y = np.zeros_like(x, dtype=float)
+    for i in range(len(x)):
+        y[i] = evalearn(x[i], R[i])
+    return y
+   # return evalearn(f(t, R0, k, f0, beta), Ref(t, R0, k))
     
 # Créer les onglets
 tabs = st.tabs(["Apprentissage", "Information"])
