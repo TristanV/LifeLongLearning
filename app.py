@@ -20,11 +20,11 @@ def get_readme_content():
     else:
         return "README.md non trouvé."
 
-# Définir les fonctions (inchangées)
-def Ref(x, R, k):
-    return R * np.exp(k * x)
-
-
+# Fonction déterminant le niveau de référence à atteindre en fonction du temps t, d'un niveau de référence initial R0 et d'un exposant de croissance exponentielle k
+def Ref(t, R0, k):
+    return R0 * (np.exp(k * t) - k * t)
+    
+# Fonction décrivant le niveau de compétence auto-évalué en fonction du niveau de compétence réel et en fonction d'un niveau de référence R à atteindre.
 def evalearn(x, R):
     x = np.asarray(x, dtype=float)
     y = np.zeros_like(x)
@@ -119,6 +119,20 @@ with tabs[0]:
     ax1.grid(True)
     st.pyplot(fig1, use_container_width=True)
 
+
+    st.markdown("**e = evalearn(c, R) = auto-évaluation (par parties) en fonction du niveau réel c et d'un objectif de référence R**")
+    
+    st.latex(r"""
+    \text{evalearn}(c,R) = 
+    \begin{cases} 
+    -\frac{64}{R^2}c^3 + \frac{24}{R}c^2 & c \in [0, \frac{R}{4}], \\
+    \frac{32}{R^2}c^3 - \frac{36}{R}c^2 + 12c - \frac{3R}{4} & c \in (\frac{R}{4}, \frac{R}{2}], \\
+    \frac{20}{R^3}u^4 - \frac{28}{R^2}u^3 + \frac{12}{R}u^2 + \frac{R}{4} & u = c - \frac{R}{2},\ c \in (\frac{R}{2}, R], \\
+    c & c > R.
+    \end{cases}
+    """)
+
+    
     # Plot des fonctions pour R(x) constant et exponentiel
     st.subheader("Variation de l'auto-évaluation et de l'apprentissage réel en fonction du temps")
     fig, axs = plt.subplots(1, 2, figsize=(24, 6))
@@ -154,25 +168,9 @@ with tabs[0]:
     st.pyplot(fig, use_container_width=True)
 
     # Affichage des équations
-    st.subheader("Équations des fonctions")
+    # st.subheader("Équations des fonctions")
     col1, col2 = st.columns(2)
     with col1:
-
-
-        st.markdown("**e = evalearn(c, R) = auto-évaluation (par parties) en fonction du niveau réel c et d'un objectif de référence R**")
-        
-        st.latex(r"""
-        \text{evalearn}(c,R) = 
-        \begin{cases} 
-        -\frac{64}{R^2}c^3 + \frac{24}{R}c^2 & c \in [0, \frac{R}{4}], \\
-        \frac{32}{R^2}c^3 - \frac{36}{R}c^2 + 12c - \frac{3R}{4} & c \in (\frac{R}{4}, \frac{R}{2}], \\
-        \frac{20}{R^3}u^4 - \frac{28}{R^2}u^3 + \frac{12}{R}u^2 + \frac{R}{4} & u = c - \frac{R}{2},\ c \in (\frac{R}{2}, R], \\
-        c & c > R.
-        \end{cases}
-        """)
-
-        
-    with col2:
         st.markdown("**Ref = objectif exponentiel en fonction du temps**")
         st.latex(r"""
         Ref(t, R_0, k) = R_0 \cdot e^{k t}
@@ -183,6 +181,9 @@ with tabs[0]:
             "- $k$ est le taux de croissance exponentielle\n"
             "- $t$ est le temps"
         )
+        
+    with col2:
+
         
         st.markdown("**f = apprentissage au fil du temps**")
         st.latex(r'''
