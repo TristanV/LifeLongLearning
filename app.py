@@ -244,7 +244,8 @@ layout = go.Layout(
         yaxis_title='Compétence réelle (c)',
         zaxis_title='Compétence auto-évaluée (e)',
     ),
-    title='Courbes 3D de compétence et auto-évaluation'
+    title='Courbes 3D de compétence et auto-évaluation',
+    height=900 
 )
 
 fig = go.Figure(data=[trace_evalearn, trace_f, trace_h], layout=layout)
