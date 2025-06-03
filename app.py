@@ -173,7 +173,7 @@ with tabs[0]:
     with col1:
         st.markdown("**Ref = objectif exponentiel en fonction du temps**")
         st.latex(r"""
-        Ref(t, R_0, k) = R_0 \cdot e^{k t}
+        Ref(t,k) = R_0 \left( e^{k t} - k t \right)
         """)
         st.markdown(
             "où :\n"
