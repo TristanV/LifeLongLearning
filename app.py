@@ -258,7 +258,30 @@ trace_href = go.Scatter3d(
     line=dict(color='red', width=6, dash='dot')
 )
 
-# Définition des bornes (à adapter à tes variables)
+# 3. Courbe h: dans le plan (t, e)
+t_h = t_vals
+e_h = h(t_h, R0, k, f0, beta)
+trace_fh = go.Scatter3d(
+    x=t_h,
+    y=e_h,  # c=e pour le plan incliné
+    z=e_h,
+    mode='lines',
+    name='h (t)',
+    line=dict(color='pink', width=6)
+)
+
+trace_fhref = go.Scatter3d(
+    x=t_h,
+    y=ref_f,  # c=e pour le plan incliné
+    z=ref_f,
+    mode='lines',
+    name='Ref (t)',
+    line=dict(color='red', width=6, dash='dot')
+)
+
+
+
+# Définition des bornes 
 t_min, t_max = t_vals[0], t_vals[-1]
 c_min, c_max = y_range[0], y_range[1]
 
@@ -287,7 +310,7 @@ layout = go.Layout(
     height=900 
 )
 
-fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href, plane_trace], layout=layout)
+fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href, plane_trace, trace_fh, trace_fhref], layout=layout)
 
 # Pour afficher avec Streamlit
 st.plotly_chart(fig, use_container_width=True)
