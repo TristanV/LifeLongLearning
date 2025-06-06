@@ -211,7 +211,7 @@ trace_evalearn = go.Scatter3d(
     z=e_evalearn,
     mode='lines',
     name='evalearn (c, e)',
-    line=dict(color='orange', width=6)
+    line=dict(color='orange', width=4)
 )
 
 # 2. Courbe f: dans le plan (t, c)
@@ -223,7 +223,7 @@ trace_f = go.Scatter3d(
     z=np.zeros_like(t_f),  # e=0 pour ce plan
     mode='lines',
     name='f (t, c)',
-    line=dict(color='yellow', width=6)
+    line=dict(color='yellow', width=4)
 )
 
 # Calcul Ref(t, R0, k)
@@ -234,7 +234,7 @@ trace_fref = go.Scatter3d(
     z=np.zeros_like(t_f),
     mode='lines',
     name='Ref (t, c)',
-    line=dict(color='red', width=6, dash='dot')
+    line=dict(color='red', width=4, dash='dot')
 )
 
 # 3. Courbe h: dans le plan (t, e)
@@ -246,7 +246,7 @@ trace_h = go.Scatter3d(
     z=e_h,
     mode='lines',
     name='h (t, e)',
-    line=dict(color='blue', width=6)
+    line=dict(color='blue', width=4)
 )
 
 trace_href = go.Scatter3d(
@@ -255,7 +255,7 @@ trace_href = go.Scatter3d(
     z=ref_f,
     mode='lines',
     name='Ref (t, e)',
-    line=dict(color='red', width=6, dash='dot')
+    line=dict(color='red', width=4, dash='dot')
 )
 
 # 3. Courbe h: dans le plan (t, e)
