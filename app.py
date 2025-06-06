@@ -74,9 +74,17 @@ def h(t, R0, k, f0, beta):
    # return evalearn(f(t, R0, k, f0, beta), Ref(t, R0, k))
     
 # Créer les onglets
-tabs = st.tabs(["Apprentissage", "Information"])
+tabs = st.tabs(["Apprentissage et compétences", "Apprentissage et auto-évaluation",  "Information"])
 
 with tabs[0]:
+    st.title("LifeLongLearning")
+     # Sidebar for parameters
+
+    st.sidebar.image("static/images/logo_lifelonglearning_v3.png", use_container_width =True)
+    
+    st.sidebar.header("Paramètres")
+
+with tabs[1]:
     st.title("LifeLongLearning")
 
     # Sidebar for parameters
@@ -198,124 +206,126 @@ with tabs[0]:
         """)
 
 
-# ################################################################ 
-# Échantillons pour les axes
-t_vals = np.linspace(x_range[0], x_range[1], 500) #temps
-c_vals = np.linspace(y_range[0], y_range[1], 500) #niveau d'apprentissage
-# 1. Courbe evalearn: dans le plan (c, e)
-c_evalearn = c_vals
-e_evalearn = evalearn(c_evalearn, R0)
-trace_evalearn = go.Scatter3d(
-    x=np.zeros_like(c_evalearn),  # t=0 pour ce plan
-    y=c_evalearn,
-    z=e_evalearn,
-    mode='lines',
-    name='evalearn (c, e)',
-    line=dict(color='orange', width=4)
-)
+    # ################################################################ 
+    # Échantillons pour les axes
+    t_vals = np.linspace(x_range[0], x_range[1], 500) #temps
+    c_vals = np.linspace(y_range[0], y_range[1], 500) #niveau d'apprentissage
+    # 1. Courbe evalearn: dans le plan (c, e)
+    c_evalearn = c_vals
+    e_evalearn = evalearn(c_evalearn, R0)
+    trace_evalearn = go.Scatter3d(
+        x=np.zeros_like(c_evalearn),  # t=0 pour ce plan
+        y=c_evalearn,
+        z=e_evalearn,
+        mode='lines',
+        name='evalearn (c, e)',
+        line=dict(color='orange', width=4)
+    )
+    
+    # 2. Courbe f: dans le plan (t, c)
+    t_f = t_vals
+    c_f = f(t_f, R0, k, f0, beta)
+    trace_f = go.Scatter3d(
+        x=t_f,
+        y=c_f,
+        z=np.zeros_like(t_f),  # e=0 pour ce plan
+        mode='lines',
+        name='f (t, c)',
+        line=dict(color='yellow', width=4)
+    )
+    
+    # Calcul Ref(t, R0, k)
+    ref_f = Ref(t_f, R0, k)
+    trace_fref = go.Scatter3d(
+        x=t_f,
+        y=ref_f,
+        z=np.zeros_like(t_f),
+        mode='lines',
+        name='Ref (t, c)',
+        line=dict(color='red', width=4, dash='dot')
+    )
+    
+    # 3. Courbe h: dans le plan (t, e)
+    t_h = t_vals
+    e_h = h(t_h, R0, k, f0, beta)
+    trace_h = go.Scatter3d(
+        x=t_h,
+        y=np.zeros_like(t_h),  # c=0 pour ce plan
+        z=e_h,
+        mode='lines',
+        name='h (t, e)',
+        line=dict(color='blue', width=4)
+    )
+    
+    trace_href = go.Scatter3d(
+        x=t_h,
+        y=np.zeros_like(t_h),  # c=0 pour ce plan
+        z=ref_f,
+        mode='lines',
+        name='Ref (t, e)',
+        line=dict(color='red', width=4, dash='dot')
+    )
+    
+    # 3. Courbe h: dans le plan (t, e)
+    t_h = t_vals
+    e_h = h(t_h, R0, k, f0, beta)
+    trace_fh = go.Scatter3d(
+        x=t_h,
+        y=c_f,  # c=e pour le plan incliné
+        z=e_h,
+        mode='lines',
+        name='h (t)',
+        line=dict(color='green', width=6)
+    )
+    
+    trace_fhref = go.Scatter3d(
+        x=t_h,
+        y=ref_f,  # c=e pour le plan incliné
+        z=ref_f,
+        mode='lines',
+        name='Ref (t)',
+        line=dict(color='red', width=6, dash='dot')
+    )
+    
+    
+    
+    # Définition des bornes 
+    t_min, t_max = t_vals[0], t_vals[-1]
+    c_min, c_max = y_range[0], y_range[1]
+    
+    # Création de la grille pour le plan e=c
+    t_plane = np.array([t_min, t_max, t_max, t_min])
+    c_plane = np.array([c_min, c_min, c_max, c_max])
+    e_plane = c_plane  # puisque e = c
+    
+    plane_trace = go.Mesh3d(
+        x=t_plane,
+        y=c_plane,
+        z=e_plane,
+        color='gray',
+        opacity=0.2,
+        name='Plan e=c',
+        showscale=False
+    )
+    
+    layout = go.Layout(
+        scene=dict(
+            xaxis_title='Temps (t)',
+            yaxis_title='Compétence réelle (c)',
+            zaxis_title='Compétence auto-évaluée (e)',
+        ),
+        title='Courbes 3D de compétence et auto-évaluation',
+        height=900 
+    )
+    
+    fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href, plane_trace, trace_fh, trace_fhref], layout=layout)
+    
+    # Pour afficher avec Streamlit
+    st.plotly_chart(fig, use_container_width=True)
 
-# 2. Courbe f: dans le plan (t, c)
-t_f = t_vals
-c_f = f(t_f, R0, k, f0, beta)
-trace_f = go.Scatter3d(
-    x=t_f,
-    y=c_f,
-    z=np.zeros_like(t_f),  # e=0 pour ce plan
-    mode='lines',
-    name='f (t, c)',
-    line=dict(color='yellow', width=4)
-)
-
-# Calcul Ref(t, R0, k)
-ref_f = Ref(t_f, R0, k)
-trace_fref = go.Scatter3d(
-    x=t_f,
-    y=ref_f,
-    z=np.zeros_like(t_f),
-    mode='lines',
-    name='Ref (t, c)',
-    line=dict(color='red', width=4, dash='dot')
-)
-
-# 3. Courbe h: dans le plan (t, e)
-t_h = t_vals
-e_h = h(t_h, R0, k, f0, beta)
-trace_h = go.Scatter3d(
-    x=t_h,
-    y=np.zeros_like(t_h),  # c=0 pour ce plan
-    z=e_h,
-    mode='lines',
-    name='h (t, e)',
-    line=dict(color='blue', width=4)
-)
-
-trace_href = go.Scatter3d(
-    x=t_h,
-    y=np.zeros_like(t_h),  # c=0 pour ce plan
-    z=ref_f,
-    mode='lines',
-    name='Ref (t, e)',
-    line=dict(color='red', width=4, dash='dot')
-)
-
-# 3. Courbe h: dans le plan (t, e)
-t_h = t_vals
-e_h = h(t_h, R0, k, f0, beta)
-trace_fh = go.Scatter3d(
-    x=t_h,
-    y=c_f,  # c=e pour le plan incliné
-    z=e_h,
-    mode='lines',
-    name='h (t)',
-    line=dict(color='green', width=6)
-)
-
-trace_fhref = go.Scatter3d(
-    x=t_h,
-    y=ref_f,  # c=e pour le plan incliné
-    z=ref_f,
-    mode='lines',
-    name='Ref (t)',
-    line=dict(color='red', width=6, dash='dot')
-)
-
-
-
-# Définition des bornes 
-t_min, t_max = t_vals[0], t_vals[-1]
-c_min, c_max = y_range[0], y_range[1]
-
-# Création de la grille pour le plan e=c
-t_plane = np.array([t_min, t_max, t_max, t_min])
-c_plane = np.array([c_min, c_min, c_max, c_max])
-e_plane = c_plane  # puisque e = c
-
-plane_trace = go.Mesh3d(
-    x=t_plane,
-    y=c_plane,
-    z=e_plane,
-    color='gray',
-    opacity=0.2,
-    name='Plan e=c',
-    showscale=False
-)
-
-layout = go.Layout(
-    scene=dict(
-        xaxis_title='Temps (t)',
-        yaxis_title='Compétence réelle (c)',
-        zaxis_title='Compétence auto-évaluée (e)',
-    ),
-    title='Courbes 3D de compétence et auto-évaluation',
-    height=900 
-)
-
-fig = go.Figure(data=[trace_evalearn, trace_f, trace_fref, trace_h, trace_href, plane_trace, trace_fh, trace_fhref], layout=layout)
-
-# Pour afficher avec Streamlit
-st.plotly_chart(fig, use_container_width=True)
-
-with tabs[1]:
+with tabs[2]:
     st.title("Information")
+
+    st.sidebar.image("static/images/logo_lifelonglearning_v3.png", use_container_width =True)
     st.markdown(get_readme_content())
 
