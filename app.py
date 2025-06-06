@@ -223,7 +223,7 @@ trace_f = go.Scatter3d(
     z=np.zeros_like(t_f),  # e=0 pour ce plan
     mode='lines',
     name='f (t, c)',
-    line=dict(color='green', width=6)
+    line=dict(color='yellow', width=6)
 )
 
 # Calcul Ref(t, R0, k)
@@ -263,11 +263,11 @@ t_h = t_vals
 e_h = h(t_h, R0, k, f0, beta)
 trace_fh = go.Scatter3d(
     x=t_h,
-    y=e_h,  # c=e pour le plan incliné
+    y=c_f,  # c=e pour le plan incliné
     z=e_h,
     mode='lines',
     name='h (t)',
-    line=dict(color='pink', width=6)
+    line=dict(color='green', width=6)
 )
 
 trace_fhref = go.Scatter3d(
